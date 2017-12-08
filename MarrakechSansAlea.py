@@ -18,7 +18,7 @@
 # Ce logiciel est régi par la licence CeCILL soumise au droit français et
 # respectant les principes de diffusion des logiciels libres. Vous pouvez
 # utiliser, modifier et/ou redistribuer ce programme sous les conditions
-# de la licence CeCILL telle que diffusée par le CEA, le CNRS et l'INRIA 
+# de la licence CeCILL telle que diffusée par le CEA, le CNRS et l'INRIA
 # sur le site "http://www.cecill.info".
 
 # En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -29,16 +29,16 @@
 
 # A cet égard  l'attention de l'utilisateur est attirée sur les risques
 # associés au chargement,  à l'utilisation,  à la modification et/ou au
-# développement et à la reproduction du logiciel par l'utilisateur étant 
-# donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
+# développement et à la reproduction du logiciel par l'utilisateur étant
+# donné sa spécificité de logiciel libre, qui peut le rendre complexe à
 # manipuler et qui le réserve donc à des développeurs et des professionnels
 # avertis possédant  des  connaissances  informatiques approfondies.  Les
 # utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
 # logiciel à leurs besoins dans des conditions permettant d'assurer la
-# sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-# à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+# sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+# à l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-# Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+# Le fait que vous puissiez accéder à cet en-tête signifie que vous avez
 # pris connaissance de la licence CeCILL, et que vous en avez accepté les
 # termes.
 from ModeleMarrakechSansAlea import *
@@ -72,7 +72,7 @@ class InterfaceLDC(object):
                 cp = self.modele.plateau.coups_possibles()
                 c = j.ou_poser_tapis(cp, modele)
                 swapc = (c[1], c[0])
-                if (c in cp or swapc in cp) :    
+                if (c in cp or swapc in cp) :
                     self.modele.poseTapis(i, c)
                 else :
                     raise ValueError("Erreur : ni " + str(c) + " ni " + str(swapc)+" dans " + str(cp) + ". IA " + str(j.__class__.__name__) + "(joueur "+ str(i) +") est-elle en train de tricher?")
@@ -89,7 +89,7 @@ class JoueurLDC(JoueurMarrakech):
     def changer_direction(self, modele):
         print(modele.plateau)
         dict = { 'g' : -1, ' ' : 0, '': 0, 'd' : 1 }
-        while True: 
+        while True:
             l = input("Joueur %s. Tourner à gauche, tout droit, à droite ? (g d) "%self)
             if l in dict:
                 return dict[l]
@@ -116,7 +116,7 @@ class JoueurLDC(JoueurMarrakech):
         print(modele.plateau)
         for n, c in enumerate(coups_possibles):
             print(n, " : ", c)
-        
+
         while True:
             l = input("Joueur %s. Où poser le tapis ? "%self)
             try:
@@ -142,7 +142,7 @@ class JoueurAuHasard(JoueurMarrakech):
             if nb_cartes_deplacement[c] > 0:
                 return c+1 # on avance d'une case de plus que l'index
             c = (c+1)%len(nb_cartes_deplacement)
-            
+
     def ou_poser_tapis(self, coups_possibles,modele):
         #print(modele.plateau)
         return coups_possibles[random.randint(0, -1+len(coups_possibles))]
@@ -165,17 +165,18 @@ if __name__ == "__main__":
     else:
         nb_joueurs_total = 2
         nb_joueurs_ldc = 0
-    
+
     m = ModeleMarrakechSansAlea(nb_joueurs_total)
     joueurs = []
-    #for i in range(nb_joueurs_ldc): joueurs.append(JoueurLDC())
-    for i in range(nb_joueurs_ldc): joueurs.append(JoueurAuHasard())
-    from MonIASimpletteSansAlea import *
+    for i in range(nb_joueurs_ldc): joueurs.append(JoueurLDC())
+    #for i in range(nb_joueurs_ldc): joueurs.append(JoueurAuHasard())
+    #from MonIASimpletteSansAlea import *
+    from IAMarrakech import *
     #for i in range(nb_joueurs_ldc, nb_joueurs_total): joueurs.append(JoueurAuHasard())
     for i in range(nb_joueurs_ldc, nb_joueurs_total): joueurs.append(MonIASimpletteSansAlea())
 
     #on joue quelques coups pour rendre l'arbre plus petit.
-    for toursAuPif in range(1,2):
+    for toursAuPif in range(1,4):
         for i, j in enumerate(joueurs):
             m.changeDir(i,random.randint(-1,1))# au pif
             m.avanceAssam(i,random.randint(1,2))# au pif
@@ -184,6 +185,3 @@ if __name__ == "__main__":
         print(str(c))
     gui = InterfaceLDC(m, joueurs)
     gui.run()
-
-
-

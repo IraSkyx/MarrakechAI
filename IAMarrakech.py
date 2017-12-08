@@ -72,7 +72,7 @@ class MonIASimpletteSansAlea(JoueurMarrakech):
         print("\nMon IA %s"%self)
         self.setCoup()
         self.stat_noeuds = self.stat_feuilles = 0
-        self.evaluationPosition = self._maxSimplet(modele)
+        self.evaluationPosition = self._maxSimplet(modele, True)
         print(self.stats())
         print("Choix : dir " + str(self.angle) +" babouches " + str(self.babouches) + " tapis " + str(self.coords))
         print("Evaluation : " + str(self.evaluationPosition))
@@ -85,8 +85,48 @@ class MonIASimpletteSansAlea(JoueurMarrakech):
         # On sait déjà quoi faire avec le modèle sans aléa
         return self.coords
 
-    def _maxSimplet(self,modele):
+    def _minSimplet(self, modele):
+        print("Min, tour = ",len(modele.tapis[-1]))
+        print(modele)
+        numMin=(self.numero+1)%modele.nb_joueurs
         """Meilleur coup local pour Joueur"""
+        if len(modele.tapis[-1]) == 0:
+            return self._eval(modele)
+
+        worst=float('Inf')
+
+        for angle in [-1,0,1]:
+            modele.changeDir(numMin, angle)
+            self.stat_noeuds+=1
+            babouchesPossibles=[b+1 for b, carte in enumerate(modele.nb_cartes_deplacement[numMin]) if carte > 0]
+            for babouches in babouchesPossibles:
+                modele.avanceAssam(numMin, babouches)
+                self.stat_noeuds+=1
+                tapisPossibles=modele.plateau.coups_possibles()
+                for coordstapis in tapisPossibles:
+                    modele.poseTapis(numMin, coordstapis)
+                    self.stat_noeuds+=1
+
+                    current = self._maxSimplet(modele)
+                    if current < worst:
+                        worst = current
+                        if worst == float('-Inf'):
+                            modele.undo()
+                            modele.undo()
+                            modele.undo()
+                            return worst
+                    modele.undo()
+                modele.undo()
+            modele.undo()
+        return worst
+
+
+    def _maxSimplet(self,modele, first=False):
+        print("Max, tour = ",len(modele.tapis[-1]))
+        print(modele)
+        """Meilleur coup local pour Joueur"""
+        if len(modele.tapis[-1]) == 0:
+            return self._eval(modele)
 
         best=float('-Inf')
 
@@ -101,13 +141,13 @@ class MonIASimpletteSansAlea(JoueurMarrakech):
                 for coordstapis in tapisPossibles:
                     modele.poseTapis(self.numero, coordstapis)
                     self.stat_noeuds+=1
-                    if self.angle == None: # on ne sait pas quoi jouer donc
-                        # on se rappelle du premier coup qui est forcément le meilleur (pour le moment)
+                    if first and self.angle == None:
                         self.setCoup(angle, babouches, coordstapis)
-                    current = self._eval(modele)
+                    current = self._minSimplet(modele)
                     if current > best:
                         best = current
-                        self.setCoup(angle, babouches, coordstapis)
+                        if first:
+                            self.setCoup(angle, babouches, coordstapis)
                         if best == float('Inf'):
                             modele.undo()
                             modele.undo()
