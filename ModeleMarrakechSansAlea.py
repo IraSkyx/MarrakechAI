@@ -92,11 +92,11 @@ class ModeleMarrakechSansAlea(object):
     _coups     : liste des coups joués (historique)
     coup_courant : coup en construction (puisque un tour de jeu d'un joeur se décompose en plusieurs micro-actions, on ne met dans l'historique que des coups complets)
     _coup_supprimes : pour faire un redo (futur qu'on pourrait rejouer)
-    _ coefs_deplacements : liste dont l'index (+1) corresponds au nombre de pas autorisés pour Assan, la valeur indiquant le nombre de face du dé donnant cette distance. (le dé a autant de faces que la somme des éléments de cette liste, par exemple [1,2,2,1] pour les règles classiques avec un dé à 6 faces). 
+    _ coefs_deplacements : liste dont l'index (+1) corresponds au nombre de pas autorisés pour Assan, la valeur indiquant le nombre de face du dé donnant cette distance. (le dé a autant de faces que la somme des éléments de cette liste, par exemple [1, 2, 2, 1] pour les règles classiques avec un dé à 6 faces). 
 
     Nouveau dans la version sans alea
     nb_cartes_deplacement : liste indexée par le numéro du joueur contenant à la position de ce dernier la liste des cartes de déplacement qu'il n'a pas encore jouées
-                            Par exemple [1,2,2,1] voudrait dire 1 carte de distance 1, 2 de distances 2, 2 de distance 3 et 1 de distance 4.
+                            Par exemple [1, 2, 2, 1] voudrait dire 1 carte de distance 1, 2 de distances 2, 2 de distance 3 et 1 de distance 4.
     """
     
     def __init__(self, nb_joueurs):
@@ -107,7 +107,7 @@ class ModeleMarrakechSansAlea(object):
         # le plateau est un entier impair au moins égal à 3 (pour que les coins fonctionnent) voir classe plateau
         t = Plateau.taille_plateau()
         # le nombre de tapis et de dirhams suit les règles pour la taille de plateau standard
-        if t == 7 and self.nb_joueurs in [3,4] :
+        if t == 7 and self.nb_joueurs in [3, 4] :
             self.nb_dirhams_par_joueur = 30
             if self.nb_joueurs == 4:
                 self.nb_tapis_par_joueur = 12
@@ -133,10 +133,10 @@ class ModeleMarrakechSansAlea(object):
         # On calcule la distance maximale en fonction de la taille du plateau de sorte qu'on puisse faire au plus 1 seul retour
         # contre le bord. Les tailles t de plateau sont toujours impaires, on prend donc comme distance max la partie entière supérieure de t/2
         # Pour les probabilités, on augmente les coefs de 1 jusqu'à la moitié de cette distance max.
-        # En gros on veut : pour t=3 [1,1}, pour t=5 [1,2,1], pour t=7 [1,2,2,1], pour t=9 [1,2,3,2,1] etc
+        # En gros on veut : pour t=3 [1, 1}, pour t=5 [1, 2, 1], pour t=7 [1, 2, 2, 1], pour t=9 [1, 2, 3, 2, 1] etc
         t = Plateau.taille_plateau() # à cause de la boucle avec t au dessus.
         distance_max=int(t/2)+1
-        self.coefs_deplacements = list(range(1,int(distance_max/2)+1))
+        self.coefs_deplacements = list(range(1, int(distance_max/2)+1))
         coefs_fin=self.coefs_deplacements[:] # on fait une copie (avec [:]) inversée du début
         coefs_fin.reverse()
         if (distance_max%2==1) :
@@ -149,6 +149,9 @@ class ModeleMarrakechSansAlea(object):
         # nb_cartes_deplacement contient le nombre de cartes disponibles pour chaque joueur et chaque distance
         repeats=int(self.nb_tapis_par_joueur/sum(self.coefs_deplacements))+1
         self.modele_nb_cartes_deplacement = [i*repeats for i in self.coefs_deplacements]
+        # mode simplifié : on ne peut pas choisir la distance (pratique pour débug / proto rapide d'IA).
+        # if debug: self.modele_nb_cartes_deplacement=[self.nb_tapis_par_joueur]
+        #
         self.nb_cartes_deplacement = []
         for i in range(nb_joueurs):
             self.nb_cartes_deplacement.append(self.modele_nb_cartes_deplacement[:])
@@ -158,7 +161,7 @@ class ModeleMarrakechSansAlea(object):
         self._coups = [] 
 
         ### obsolète
-        # self.coup_courant = Coup((0, 0, 0), self.plateau.assam.clone(),0)
+        # self.coup_courant = Coup((0, 0, 0), self.plateau.assam.clone(), 0)
 
         # La liste des coups que l'on peut rejouer (au sens classique d'un do/undo dans une interface par exemple).
         # cette liste est remise à vide si un nouveau coup est joué
@@ -173,28 +176,34 @@ class ModeleMarrakechSansAlea(object):
         except IndexError as e:
             print("Attention, pas de coups à défaire :"+ str(e))
             raise e
-        if history : self._coups_supprimes.append(coup)
-        coup.undo(self)
+        if history :
+            self._coups_supprimes.append(coup)
+        else :
+            self._coups_supprimes = []
+        coup.undo(self)#appel du undo spécifique en fonction du type de coup
 
-    def _undoChangeDir(self,coup):
+    def _undoChangeDir(self, coup):
         """Redirige Assam en place (direction sens opposée à l'original)"""
         self.plateau.assam.tourne(-coup.dir)
-        self._coups_supprimes = []
 
-    def _undoAvanceAssam(self,coup):
+
+    def _undoAvanceAssam(self, coup):
         """Remet Assam en place (demi tour, mouvement, demi tour, rembourse, repre,d carte mouvement"""
-        self.plateau.avance_Assam(2,coup.babouches)
-        self.plateau.assam.tourne(2) #remet Assam dans le bon sens
-        self.paye(coup.joueur_payé, coup.joueur, coup.dirhams)
+        self.plateau.avance_Assam(2, coup.babouches) # demi-tour et avance de la même distance (i.e. recule)
+        self.plateau.assam.tourne(2) # remet Assam dans le bon sens
+        if coup.joueur_payé is not None:
+            self.paye(coup.joueur_payé, coup.joueur, coup.dirhams)
         self.nb_cartes_deplacement[coup.joueur][coup.babouches-1]+=1
 
-    def _undoPoseTapis(self,coup):
-        """plateau.plateau un peu moche, je devrais appeller un truc de plateau qui fait tout ça"""
-        assert(self.plateau.plateau[coup.coords[0][0]][coup.coords[0][1]].tapis is coup.tapis)
-        assert(self.plateau.plateau[coup.coords[1][0]][coup.coords[1][1]].tapis is coup.tapis)
+    def _undoPoseTapis(self, coup):
+        # plateau.plateau un peu moche, je devrais appeller un truc de plateau qui fait tout ça
+        assert(self.plateau.plateau[coup.coords[0][0]][coup.coords[0][1]].tasdetapis[-1] is coup.tapis)
+        assert(self.plateau.plateau[coup.coords[1][0]][coup.coords[1][1]].tasdetapis[-1] is coup.tapis)
+        # on enlève le tapis
+        self.plateau.plateau[coup.coords[0][0]][coup.coords[0][1]].tasdetapis.pop()
+        self.plateau.plateau[coup.coords[1][0]][coup.coords[1][1]].tasdetapis.pop()
+        # on remet le tapis sur le tas du joueur
         self.tapis[coup.tapis.couleur()].append(coup.tapis)
-        # rafraîchir le plateau (alternativement, on pourrait ne pas utiliser union find, remonter la pile des coups pour retrouver le tapis de chaque case) 
-        self.plateau.refresh(self._coups)
     
     def redo(self):
         """Refait le dernier coup annulé s'il existe"""
@@ -206,31 +215,32 @@ class ModeleMarrakechSansAlea(object):
         coup.redo(self)
         self._coups.append(coup)
         
-    def _ChangeDir(self,coup):
+    def _ChangeDir(self, coup):
         self.plateau.assam.tourne(coup.dir)
 
     def changeDir(self, joueurNum, dir):
         """ change_dir vaut -1, 0, +1 pour à gauche, tout droit ou à droite
         """
         self._coups_supprimes = [] # plus de redo possible
-        coup = CoupChangeDir(joueurNum,dir)
+        coup = CoupChangeDir(joueurNum, dir)
         self._ChangeDir(coup)
         self._coups.append(coup)
 
     def _AvanceAssam(self, coup):
         """Note : sauf en cas de redo, on ne connaît pas la partie dette qu'on doit calculer."""
-        self.plateau.avance_Assam(0,coup.babouches)
-        if not coup.joueur_payé :
-            coup.joueur_payé = self.plateau.couleur_assam()
-            if coup.joueur != coup.joueur_payé :
-                coup.dirhams = self.plateau.taille_region_assam()
+        self.plateau.avance_Assam(0, coup.babouches)#0 c'est la direction. Nota Bene : on devrait probablement changer l'API en enlevant ce paramètre
+        if coup.joueur_payé is None : 
+            coup.joueur_payé = self.plateau.couleur_assam() # peut encore être None si pas de tapis
+            if coup.joueur_payé is not None and coup.joueur != coup.joueur_payé:
+                ### insolvable à gérer ici pour que le undo marche correctement (c'est l'argent de joueur qui paye qui permet de savoir si il est solvable)!
+                coup.dirhams = min(self.plateau.taille_region_assam(),self.dirhams[coup.joueur])
+                self.paye(coup.joueur, coup.joueur_payé, coup.dirhams)
             else :
                 coup.dirhams = 0
-        self.paye(coup.joueur, coup.joueur_payé, coup.dirhams)
         self.nb_cartes_deplacement[coup.joueur][coup.babouches-1]-=1
 
     def avanceAssam(self, joueurNum, babouches):
-        """numero"""
+        # Vérification des babouches devrait aller dans le controleur pour être cohérent?
         self._coups_supprimes = [] # plus de redo possible
         nb_cartes = self.nb_cartes_deplacement[joueurNum][babouches-1]
         if babouches <= 0:
@@ -250,21 +260,24 @@ class ModeleMarrakechSansAlea(object):
         self._AvanceAssam(coup)
         self._coups.append(coup)
 
-    def _PoseTapis(self,coup):
+    def _PoseTapis(self, coup):
         self.plateau.pose_tapis(coup.coords, coup.tapis)
-        self.plateau.calcul_region()
         
     def poseTapis(self, num_joueur, coords): 
-        """Légèrement unsafe : on ne vérifie pas si le tapis a le droit d'être posé . On délègue à l'interface le soin de récupérer un numéro d'index valide de coups_possibles et de renvoyer au modèle un coup_possible. 
+        """Légèrement unsafe : on ne vérifie pas si le tapis a le droit d'être posé . 
+        C'set au controleur de le faire
         """
+        # On pourrait changer l'API et délèguer au controleur le soin de récupérer un numéro d'index valide de coups_possibles?
+        # Demanderait à gérer un flag sur coups possible...
         self._coups_supprimes = [] # plus de redo possible
-        coup = CoupPoseTapis(num_joueur,coords, self.tapis[num_joueur].pop())
+        coup = CoupPoseTapis(num_joueur, coords, self.tapis[num_joueur].pop())
         self._PoseTapis(coup)
         self._coups.append(coup)
     
     def paye(self, donneur, receveur, dirhams):
+        """on vérifie quand même que le donneur est solvable (vérif normalement inutile maintenant puisqu'on le fait dans avanceAssan)"""
         if dirhams != 0:
-            #print("Joueur %s paye à %d : %d Dirhams"%(donneur, receveur, dirhams))
+            # print("Joueur", donneur, "paye à", receveur, ":", dirhams, "Dirhams")
             if self.dirhams[donneur] < dirhams:
                 #print("Joueur", donneur, "insolvable")
                 self.dirhams[receveur] += self.dirhams[donneur]
@@ -298,10 +311,25 @@ class ModeleMarrakechSansAlea(object):
         for i in range(self.nb_joueurs): ret += "%4d"%nb_tapis_exposes[i]
         ret += "\n\ntotal      "
         points = self.points()
-        for i in range(self.nb_joueurs): ret += "%4d"%points[i]
-        
+        for i in range(self.nb_joueurs): ret += "%4d"%points[i]        
         return ret
 
+    def pretty_historique(self):
+        """retourne l'historique (string)"""
+        ret="\n"
+        for i,c in enumerate(self._coups):
+            ret+=str(c)
+            if i%3==2: # action d'un joueur = 3 micro coups
+                ret+="\n"
+        return(ret)
+
+    def __eq__(self, other):
+        """Pas clair qu'il faille le mettre, il y a un comparateur par défaut?
+        To check : doit-on définir un comparateur récursivement pour les objets apparaissant dans le modèle?"""
+        #return self.__dict__ == other.__dict__#Semble rentre différents même des choses semblables?
+        return self.dirhams == other.dirhams ### seul le pognon pose problème dans le undo?    
+
+    
 class Assam(object):
     "Attributs : x, y les coordonnées, dir la direction 0 à 3 pour N, E, S, W"
     def __init__(self, x=-1, y=-1, dir = 2):
@@ -340,13 +368,15 @@ class Tapis(object):
     def couleur(self):
         return self._couleur
         
-    def __str__(self):
-        return "%d"%self._couleur
+    #def __str__(self):
+    #    return "%d"%self._couleur
 
 class Coup(object):
     """Classe abstraite dont vont hériter les différents coups concrets du jeu : pratique pour Marrakech où un joueur fait plusieurs actions.
-    Un Attribut : joueur (le *numéro* du joueur qui va faire l'action), dans la version avec aléa le joueur -1 codera aléa 
-    Note : apriori, il n'y aura jamais de méthode ce sont juste des objets pour encapsuler des données utiles. En particulier, c'est au modèle de vérifier que les coups sont légaux, et c'est dans le modèle qu'on aura la méthode do(Coup concret) et undo(Coup concret), où coup concret est le nom d'une classe fille de Coup."""
+    Un Attribut : joueur (le *numéro* du joueur qui va faire l'action)
+    Deux méthodes : undo et redo.
+    Un truc bizare : refresh qui devrait aller habiter dans le monde des tapis?
+    """
     def __init__(self, joueur=-1):
         self.joueur=joueur
 
@@ -355,7 +385,7 @@ class Coup(object):
     def redo(self, modele):
         pass
     def refresh(self, modele):
-        "redo partiel qui ne fait que poser les tapis"
+        "redo partiel qui ne fait que poser les tapis"#c'est moche avancer et tourner assan n'a rien à voir avec les tapis.
         pass
 
 class CoupChangeDir(Coup):
@@ -365,8 +395,8 @@ class CoupChangeDir(Coup):
     """
     dirToStr = {-1 : "à gauche", 0 : "tout droit" , 1 : "à droite"}
     
-    def __init__(self,joueur,dir):
-        assert(dir in [-1,0,1])
+    def __init__(self, joueur, dir):
+        assert(dir in [-1, 0, 1])
         self.dir = dir
         super().__init__(joueur)
 
@@ -381,13 +411,13 @@ class CoupChangeDir(Coup):
 
 class CoupAvanceAssam(Coup):
     """action correspondant à une avancée de Assam. 
-    Attribut hérité : le joueur faisant le coup (-1 si aléatoire)
-    babouches : la distance parcourue par Assam
+    Attribut hérité : le joueur faisant le coup
+    babouches : la distance parcourue par Assam 
     joueur_payé : couleur du tapis sur lequel Assam tombe
     dirhams : somme payée par joueur (faisant le coup) à joueur_payé.
     """
         
-    def __init__(self, joueur,babouches,joueur_payé=None,dirhams=0):
+    def __init__(self, joueur, babouches, joueur_payé=None, dirhams=0):
         assert(dirhams>=0)
         super().__init__(joueur)
         self.babouches = babouches
@@ -411,7 +441,7 @@ class CoupAvanceAssam(Coup):
 class CoupPoseTapis(Coup):
     """action correspondant au dépôt d'un tapis sur le plateau.
     Attribut hérité : le joueur faisant le coup
-    coords : un tuple contenant les coordonnées des cases occupées par le tapis ex. : ((1,1),(2,1))
+    coords : un tuple contenant les coordonnées des cases occupées par le tapis ex. : ((1, 1), (2, 1))
     tapis : le tapis concerné
     """
 
@@ -436,28 +466,35 @@ class CoupPoseTapis(Coup):
 class Case(object):
     """Une case du Plateau.
     Attributs :
-        tapis : le tapis qui la recouvre
+        tasdetapis : les tapis qui la recouvre [ pile de tapis ]
         taille_region : la taille de la région de couleur uniforme à laquelle elle appartient
         num_region : pour l'étiquetage des régions
         ? coords : coordonnées ?
     """
     def __init__(self):
-        self.tapis = None
+        self.tasdetapis = []
         self.taille_region = 0
         self.etiquette_region = Plateau.TAILLEPLATEAU*Plateau.TAILLEPLATEAU # supérieur au nombre possible de régions (équivalent à +∞) %%% utiliser infty???
         # ?    self.coords = coords
 
+    def letapis(self):
+        if self.tasdetapis:
+            return self.tasdetapis[-1]
+        return None
+        
     def couleur(self):
-        if self.tapis == None:
-            return None
-        return self.tapis.couleur()
+        if self.tasdetapis:
+            return self.tasdetapis[-1].couleur()
+        return None
+        
 
 class Plateau(object):
-    """ Le plateau est un tableau à 2 dimensions de Cases réalisé en Python par une liste de listes
+    """ Le plateau est un tableau à 2 dimensions de Cases réalisé en Python par une liste de colonne.
+    Les colonnes sont représentées par une liste de Case.
     Il est mis à jour après chaque coup joué.
     Attributs.
     assam : 
-    plateau qui est un tableau à 2 dimension de Cases.
+    plateau qui est un tableau à 2 dimensions de Cases.
     
     """
     TAILLEPLATEAU = 7 # côté du plateau carré
@@ -481,38 +518,45 @@ class Plateau(object):
     def __init__(self):
         self.assam = Assam()
         self.plateau = []
-        for l in range(Plateau.TAILLEPLATEAU):
-            ligne=[]
+        for col in range(Plateau.TAILLEPLATEAU):
+            colonne=[]
             for c in range(Plateau.TAILLEPLATEAU):
-                ligne.append(Case())
-            self.plateau.append(ligne)
+                colonne.append(Case())
+            self.plateau.append(colonne)
+            
+        for x, colonne in enumerate(self.plateau):
+            for y, case in enumerate(colonne):
+                case.voisines = self._calcul_cases_voisines(x, y)
+
         self._taille_region = []
     
     def pose_tapis(self, coords, tapis):
-        # print("Pose tapis " + tapis._couleur + " " + coords.__str__())
-        self.plateau[coords[0][0]][coords[0][1]].tapis = tapis
-        self.plateau[coords[1][0]][coords[1][1]].tapis = tapis
+        self.plateau[coords[0][0]][coords[0][1]].tasdetapis.append(tapis)
+        self.plateau[coords[1][0]][coords[1][1]].tasdetapis.append(tapis)
+        # print("Pose tapis ", tapis.couleur(), coords, tapis, self.plateau[coords[1][0]][coords[1][1]].tasdetapis)
 
     def depose_tapis(self, coords, tapis):
-        assert(self.plateau[coords[0][0]][coords[0][1]].tapis is tapis)
-        assert(self.plateau[coords[1][0]][coords[1][1]].tapis is tapis)
-        # pas nécessaire vu que l'on va faire un refresh complet du plateau
-        # self.plateau[coords[0][0]][coords[0][1]].tapis = None
-        # self.plateau[coords[1][0]][coords[1][1]].tapis = None
+        # assert(self.plateau[coords[0][0]][coords[0][1]].tasdetapis[-1] is tapis)
+        # assert(self.plateau[coords[1][0]][coords[1][1]].tasdetapis[-1] is tapis)
+        t1= self.plateau[coords[0][0]][coords[0][1]].tasdetapis.pop()
+        t2 =self.plateau[coords[1][0]][coords[1][1]].tasdetapis.pop()
+        assert(t1 == t2 and t1 == tapis)
         
-    def _cases_voisines(self, x, y):
+    def _calcul_cases_voisines(self, x, y):
         "Génère les couples (case_voisine_valide, direction) pour la case (x, y)"
         deplacement_case4 = ((0, -1), (1, 0), (0, 1), (-1, 0))
+        voisines = []
         for d in range(4):
             c = self.coords_voisines((x, y), deplacement_case4[d])
             if self.coords_valides(c):
-                yield self.plateau[c[0]][c[1]], d
+                voisines.append((self.plateau[c[0]][c[1]], d))
+        return voisines
 
-    def _etiquettes_voisines(self, x, y, t):
+    def _etiquettes_voisines(self, case, t):
         "Retourne (liste des étiquettes voisines, valeur mini) pour les voisins de même couleur que le tapis t"
         mini = Plateau.TAILLEPLATEAU*Plateau.TAILLEPLATEAU # > nombre max de régions
         etiquettes = []
-        for c, d in self._cases_voisines(x, y):
+        for c, d in case.voisines:
             #print(x, y, "↑→↓←"[d], c.etiquette_region, t.couleur(), c.couleur())
             e = c.etiquette_region
             if e != Plateau.TAILLEPLATEAU*Plateau.TAILLEPLATEAU and t.couleur() == c.couleur():
@@ -526,17 +570,16 @@ class Plateau(object):
         L'algo est décrit à https://en.wikipedia.org/wiki/Connected-component_labeling
         """
         union_find = UnionFind()
-        for y in range(Plateau.TAILLEPLATEAU):
-            for x in range(Plateau.TAILLEPLATEAU):
-                self.plateau[x][y].etiquette_region = Plateau.TAILLEPLATEAU*Plateau.TAILLEPLATEAU
+        for x, colonne in enumerate(self.plateau):
+            for y, case in enumerate(colonne):
+                case.etiquette_region = Plateau.TAILLEPLATEAU*Plateau.TAILLEPLATEAU
        # 1re passe
         etiquette_region = 0 
-        for y in range(Plateau.TAILLEPLATEAU):
-            for x in range(Plateau.TAILLEPLATEAU):
-                c = self.plateau[x][y]
-                t = c.tapis
+        for x, colonne in enumerate(self.plateau):
+            for y, c in enumerate(colonne):
+                t = c.letapis()
                 if t != None:
-                    etiquettes, mini = self._etiquettes_voisines(x, y, t)
+                    etiquettes, mini = self._etiquettes_voisines(c, t)
                     if len(etiquettes) == 0: 
                         assert(mini == Plateau.TAILLEPLATEAU*Plateau.TAILLEPLATEAU)
                         # pas de voisines étiquetées
@@ -561,9 +604,8 @@ class Plateau(object):
         ##    print("Partition étiquettes :", partition.values())
         # 2e passe et calcul taille région
         self._taille_region = {}
-        for y in range(Plateau.TAILLEPLATEAU):
-            for x in range(Plateau.TAILLEPLATEAU):
-                c = self.plateau[x][y]
+        for x, colonne in enumerate(self.plateau):
+            for y, c in enumerate(colonne):
                 nelle_etiquette = union_find[c.etiquette_region]
                 c.etiquette_region = nelle_etiquette 
                 if nelle_etiquette not in self._taille_region:
@@ -572,18 +614,33 @@ class Plateau(object):
                     self._taille_region[nelle_etiquette] += 1
         # par convention le fond a une région de taille 0
         self._taille_region[Plateau.TAILLEPLATEAU*Plateau.TAILLEPLATEAU] = 0
-        return 0
 
-    def couleur_assam(self):
-        t = self.plateau[self.assam.coords()[0]][self.assam.coords()[1]].tapis
-        return None if t == None else t.couleur()
-
-    def taille_region_assam(self):
-        return self.taille_region(self.assam.coords()[0], self.assam.coords()[1])
-
-    def taille_region(self, x, y):
+    def taille_region(self, x, y): 
         e = self.plateau[x][y].etiquette_region
         return self._taille_region[e] if e in self._taille_region else 0
+
+    def couleur_assam(self):
+        return self.plateau[self.assam.coords()[0]][self.assam.coords()[1]].couleur()
+
+    def taille_region_assam(self):
+        return self.calcul_taille_region(self.plateau[self.assam.coords()[0]][self.assam.coords()[1]])
+
+    def calcul_taille_region(self, case, init = True, p = 0):
+        if case.couleur() is None:
+            #pas de tapis, pas de région
+            return 0
+        if init: # marquer toutes les cases à False
+            for colonne in self.plateau:
+                for c in colonne:
+                    c.marque = False
+        case.marque = 1
+        taille = 1
+        for c, d in case.voisines:
+            if c.marque:
+                continue
+            if c.couleur() == case.couleur():
+                taille += self.calcul_taille_region(c, False, p+1)#à quoi sert p?
+        return taille
 
     @staticmethod
     def coords_voisines(coords, deplacement):
@@ -610,14 +667,14 @@ class Plateau(object):
         for d in range(4):
             c = self.coords_voisines(self.assam.coords(), deplacement_case4[d])
             if self.coords_valides(c):
-                c_tapis = self.plateau[c[0]][c[1]].tapis
+                c_tapis = self.plateau[c[0]][c[1]].letapis()
                 for depl in deplacement_voisine_case4[d]:
                     cc = self.coords_voisines(self.assam.coords(), depl)
                     if self.coords_valides(cc):
                         if c_tapis == None:
                             ret.append((c, cc))
                         else:
-                            cc_tapis =  self.plateau[cc[0]][cc[1]].tapis
+                            cc_tapis =  self.plateau[cc[0]][cc[1]].letapis()
                             if (cc_tapis == None) or (not (c_tapis is cc_tapis)):
                                 ret.append((c, cc))
         return ret
@@ -704,13 +761,9 @@ class Plateau(object):
         return nb_tapis_exposes
 
     def refresh(self, coups):
-        """ Repose tous les tapis si il s'agit de dépôt de tapis. Obsolète le jour où on enlève le union find
-        Alternative déraisonnable : construire sa propre structure de données mais changer les règles pour interdire les zones biconnexes.
-        Alternative raisonnable : calculer la valeur des zones à la volée / valeur de la zone d'une case à la volée.
-        """
+        """ Repose tous les tapis si il s'agit de dépôt de tapis. Non utilisé. """
         for coup in coups:
             coup.refresh(self)
-        self.calcul_region()
         
     def __7bits_str__(self):
         "sortie en ascii art 7 bits"
@@ -726,7 +779,7 @@ class Plateau(object):
             ret += " %d  "% y # 4 espaces en début de ligne
             for x in range(Plateau.TAILLEPLATEAU):
                 a = " " if not self.assam.est_a(x, y) else self.assam.str_dir()
-                t = self.plateau[x][y].tapis
+                t = self.plateau[x][y].letapis()
                 tt = " " if t == None else t.__str__()
                 ret += "|%c%s "% (a, tt)
             ret += "|"
@@ -756,23 +809,21 @@ class Plateau(object):
                 else:
                     a = ""
                     aa = " "
-                t = self.plateau[x][y].tapis
+                t = self.plateau[x][y].letapis()
                 t_ansi_color = 0 if t is None else 40+t.couleur()+1
-                if t is None or x == 0 or not self.plateau[x-1][y].tapis is t:
+                if t is None or x == 0 or not self.plateau[x-1][y].letapis() is t:
                     ret += "│" 
                 else:
                     ret += "\033[%dm \033[0m"%t_ansi_color
-                #b = "%2d"%self.plateau[x][y].etiquette_region
-                b = "%2d"%self.taille_region(x, y)
+                b = "  " #if not Plateau.use_unionfind else "%2d"%self.taille_region(x, y)
                 ret += "%s\033[%dm%s%s\033[0m"%(a, t_ansi_color, aa, b)
-                #ret += "│%c%s "% (a, " " if t is None else t.couleur())
             ret +=  "│ " + "┘┐"[y%2] + " %d"%y
             ret += eol + "   " + "│ "[y%2]
             if y < Plateau.TAILLEPLATEAU-1:
                 ret += " ├"
                 for x in range(Plateau.TAILLEPLATEAU):
-                    t = self.plateau[x][y].tapis
-                    if not t is None and t is self.plateau[x][y+1].tapis:
+                    t = self.plateau[x][y].letapis()
+                    if not t is None and t is self.plateau[x][y+1].letapis():
                         ret += "\033[%dm   \033[0m"%(40+t.couleur()+1)
                     else:
                         ret += "───"
@@ -796,7 +847,6 @@ if __name__ == "__main__":
     # # 2 joueurs par défaut 4 au max
     # nb_joueurs = 2 if len(sys.argv) < 2 else min(int(sys.argv[1]), 4)
     # m = ModeleMarrakech(nb_joueurs)
-    # m.plateau.calcul_region()
     # print(m.plateau)
     # nb_tapis = len(m.tapis[0])
     # #for i in range(6):
@@ -809,11 +859,47 @@ if __name__ == "__main__":
     #     coups_possibles = m.plateau.coups_possibles()
     #     print(coups_possibles)
     #     m.pose_tapis(coups_possibles[random.randint(0, -1+len(coups_possibles))], i%nb_joueurs)
-    #     m.plateau.calcul_region()
     #     print(m.plateau)
 
     # for t in m.tapis:
     #     assert(len(t) == 0)
+    Plateau.set_taille_plateau(3)
     m = ModeleMarrakechSansAlea(2)
-    m.poseTapis(0,((3,4),(2,2)))
+    # for c in m.coups_possibles() :
+    #     print(c)
+    m.poseTapis(1,((2, 1), (2, 0)))
+    print(m)
+    print("*** historique *** ", m.pretty_historique())
     m.undo()
+    
+    print(m)
+    print("*** historique *** ", m.pretty_historique())
+    m.poseTapis(1,((2, 1), (2, 0)))
+    print(m)
+    print("*** historique *** ", m.pretty_historique())
+    m.changeDir(0,-1)
+    print(m)
+    print("*** historique *** ", m.pretty_historique())
+    m.avanceAssam(0,1)
+    print(m)
+    print("*** historique *** ", m.pretty_historique())
+    m.undo()
+    print(m)
+    print("*** historique *** ", m.pretty_historique())
+    m.undo()
+    print(m)
+    print("*** historique *** ", m.pretty_historique())
+    m.changeDir(0,1)
+    print(m)
+    print("*** historique *** ", m.pretty_historique())
+    m.avanceAssam(0,1)
+    print(m)
+    print("*** historique *** ", m.pretty_historique())
+    m.undo()
+    print(m)
+    print("*** historique *** ", m.pretty_historique())
+    m.undo()
+    print(m)
+    print("*** historique *** ", m.pretty_historique())
+    #print(m.__dict__)
+    

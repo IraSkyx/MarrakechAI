@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# MonIASimpletteSansAlea.py
+# IAMarrakech.py
 
 # Copyright Florent Madelaine, (1/12/2017)
 
@@ -46,7 +46,7 @@ import random
 
 debug = False #True
 
-class MonIASimpletteSansAlea(JoueurMarrakech):
+class IAMarrakech(JoueurMarrakech):
 
     def __init__(self):
         super().__init__()
@@ -86,8 +86,8 @@ class MonIASimpletteSansAlea(JoueurMarrakech):
         return self.coords
 
     def _minSimplet(self, modele):
-        print("Min, tour = ",len(modele.tapis[-1]))
-        print(modele)
+        #print("Min, tour = ",len(modele.tapis[-1]))
+        #print(modele)
         numMin=(self.numero+1)%modele.nb_joueurs
         """Meilleur coup local pour Joueur"""
         if len(modele.tapis[-1]) == 0:
@@ -122,8 +122,8 @@ class MonIASimpletteSansAlea(JoueurMarrakech):
 
 
     def _maxSimplet(self,modele, first=False):
-        print("Max, tour = ",len(modele.tapis[-1]))
-        print(modele)
+        #print("Max, tour = ",len(modele.tapis[-1]))
+        #print(modele)
         """Meilleur coup local pour Joueur"""
         if len(modele.tapis[-1]) == 0:
             return self._eval(modele)

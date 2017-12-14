@@ -54,8 +54,13 @@ class InterfaceLDC(object):
         self.joueurs = joueurs
 
     def run(self):
-        """Version avec controleur minimal : deepclone du modele pour une IA avec vérification que la pose du tapis est possible, pas de clone pour JoueurLDC auquel on délègue le travail de controle. Les autres vérifications sont faites dans le modele pour l'instant. C'est un peu moche. À terme il faudrait tout faire ici dans le controlleur, voir avoir une version bretelle et ceinture qui vérifie des 2 côtés.
+        """Version avec controleur minimal :
+        deepclone du modele pour une IA avec vérification que la pose du tapis est possible,
+        pas de clone pour JoueurLDC auquel on délègue le travail de controle.
+        Les autres vérifications sont faites dans le modele pour l'instant.
         """
+        # À terme il faudrait tout faire ici dans le controlleur, voir avoir une version bretelle  et ceinture qui vérifie des 2 côtés.
+
         # Au cas où la partie est commencée.
         # On suppose pour simplifier le code que tout le monde a joué le même nombre de coups.
         tour0= self.modele.nb_tapis_par_joueur - len(self.modele.tapis[0]) + 1
@@ -63,11 +68,23 @@ class InterfaceLDC(object):
         for tour in range(tour0,tourfin+1):
             print("\n                     Tour", tour)
             for i, j in enumerate(joueurs):
-                #if debug: print(j)
+                # direction
                 modele = self.modele if j.__class__.__name__ == "JoueurLDC" else copy.deepcopy(self.modele)
-                self.modele.changeDir(i,j.changer_direction(modele))
+                dir=j.changer_direction(modele)
+                if modele == self.modele :
+                    pass
+                else :
+                    print("Le modèle du controleur :", str(self.modele))
+                    print("*** historique controleur *** ", self.modele.pretty_historique())
+                    print("Le modèle de l'IA :", str(modele))
+                    print("*** historique IA *** ", modele.pretty_historique())
+                    raise ValueError("Modèle du controleur différent de celui de l'IA")
+                self.modele.changeDir(i,dir)
+                # babouches
                 modele = self.modele if j.__class__.__name__ == "JoueurLDC" else copy.deepcopy(self.modele)
                 self.modele.avanceAssam(i, j.avancer(self.modele.nb_cartes_deplacement[j.numero],modele))
+
+                # tapis
                 modele = self.modele if j.__class__.__name__ == "JoueurLDC" else copy.deepcopy(self.modele)
                 cp = self.modele.plateau.coups_possibles()
                 c = j.ou_poser_tapis(cp, modele)
@@ -76,10 +93,12 @@ class InterfaceLDC(object):
                     self.modele.poseTapis(i, c)
                 else :
                     raise ValueError("Erreur : ni " + str(c) + " ni " + str(swapc)+" dans " + str(cp) + ". IA " + str(j.__class__.__name__) + "(joueur "+ str(i) +") est-elle en train de tricher?")
+
                 print(self.modele)
+
         scores=self.modele.points()
-        for winner in [i for i, j in enumerate(scores) if j == max(scores)]:
-            print("Joueur " + str(i) + " gagne avec " + str(scores[i]) + " points")
+        for gagnant, points in [(i, j) for i, j in enumerate(scores) if j == max(scores)]:
+            print("Joueur", gagnant, "gagne avec", points, "points")
 
 class JoueurLDC(JoueurMarrakech):
     """Pas besoin de cloner le jeu"""
@@ -148,40 +167,44 @@ class JoueurAuHasard(JoueurMarrakech):
         return coups_possibles[random.randint(0, -1+len(coups_possibles))]
 
 if __name__ == "__main__":
-    random.seed(0) # pour avoir le même random à chaque fois
+    #random.seed(0) # pour avoir le même random à chaque fois
     import sys
-    # 2 joueurs par défaut 4 au max
+    from MonIASimpletteSansAlea import *
+    from IAMarrakech import *
+    #
+    dict_types_joueurs = {"hasard" : JoueurAuHasard, "IAMarrakech" : IAMarrakech, "clavier": JoueurLDC, "simple" : MonIASimpletteSansAlea}
+    strplayers=""
+    for v in dict_types_joueurs.keys():
+        strplayers+=str(v)+" "
+    joueurs = []
     argindex=1
-    if len(sys.argv) >=2:
+    while argindex < len(sys.argv):
+        # print(argindex, sys.argv)
         if sys.argv[1] == "-h":
-            sys.stderr.write("Usage : python3 "+ sys.argv[0] + " [-t <taille>] <nb joueurs total> [<nb joueurs humains>]\n")
+            sys.stderr.write("Usage : python3 "+ sys.argv[0] + " [-t <taille>] [-seed <random-seed>] <type-joueurs...>]\n" +
+                             "Types_joueurs possibles: "+ strplayers +"\n")
             sys.exit(-1)
-        if sys.argv[argindex] == "-t":
+        elif sys.argv[argindex] == "-t":
             Plateau.set_taille_plateau(int(sys.argv[argindex+1]))
             argindex += 2
-    if len(sys.argv) > argindex:
-        nb_joueurs_total = min(int(sys.argv[argindex]), 4)
-        nb_joueurs_ldc = 0 if argindex+1 >= len(sys.argv) else min(int(sys.argv[argindex+1]), nb_joueurs_total)
-    else:
-        nb_joueurs_total = 2
-        nb_joueurs_ldc = 0
+        elif sys.argv[argindex] == "-seed":
+            random.seed(int(sys.argv[argindex+1]))
+            argindex += 2
+        else:
+            joueurs.append(dict_types_joueurs[sys.argv[argindex]]())
+            argindex += 1
 
-    m = ModeleMarrakechSansAlea(nb_joueurs_total)
-    joueurs = []
-    for i in range(nb_joueurs_ldc): joueurs.append(JoueurLDC())
-    #for i in range(nb_joueurs_ldc): joueurs.append(JoueurAuHasard())
-    #from MonIASimpletteSansAlea import *
-    from IAMarrakech import *
-    #for i in range(nb_joueurs_ldc, nb_joueurs_total): joueurs.append(JoueurAuHasard())
-    for i in range(nb_joueurs_ldc, nb_joueurs_total): joueurs.append(MonIASimpletteSansAlea())
+    print(joueurs)
+    m = ModeleMarrakechSansAlea(len(joueurs))
 
     #on joue quelques coups pour rendre l'arbre plus petit.
-    for toursAuPif in range(1,4):
+    for toursAuPif in range(1,2):
         for i, j in enumerate(joueurs):
             m.changeDir(i,random.randint(-1,1))# au pif
             m.avanceAssam(i,random.randint(1,2))# au pif
             m.poseTapis(i, random.choice((m.coups_possibles())))
     for c in m._coups:
         print(str(c))
+    print("Règles : ", m.nb_joueurs, " joueurs sur un plateau de côté ", m.plateau.TAILLEPLATEAU, " avec chacun ", m.modele_nb_cartes_deplacement, " cartes de déplacement ", m.nb_dirhams_par_joueur, " dirhams et ", m.nb_tapis_par_joueur, " tapis.")
     gui = InterfaceLDC(m, joueurs)
     gui.run()
