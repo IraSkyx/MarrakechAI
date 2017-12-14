@@ -56,7 +56,6 @@ class IAMarrakech(JoueurMarrakech):
         self.evaluationPosition = None
         self.stat_noeuds = 0
         self.stat_feuilles = 0
-        self.stat_coupe = 0
 
     def __str__(self):
         return "\033[%dm %d \033[0m"%(self.numero+41, self.numero)
@@ -67,12 +66,12 @@ class IAMarrakech(JoueurMarrakech):
         self.coords = coords
 
     def stats(self):
-        return "Stats : noeuds internes "+ str(self.stat_noeuds) + " feuilles "+ str(self.stat_feuilles) + "Stats : coupes "+ str(self.stat_coupe)
+        return "Stats : noeuds internes "+ str(self.stat_noeuds) + " feuilles "+ str(self.stat_feuilles)
 
     def changer_direction(self,modele):
         print("\nMon IA %s"%self)
         self.setCoup()
-        self.stat_noeuds = self.stat_feuilles = self.stat_coupe = 0
+        self.stat_noeuds = self.stat_feuilles = 0
         self.evaluationPosition = self._maxSimplet(modele, True)
         print(self.stats())
         print("Choix : dir " + str(self.angle) +" babouches " + str(self.babouches) + " tapis " + str(self.coords))
@@ -86,7 +85,7 @@ class IAMarrakech(JoueurMarrakech):
         # On sait déjà quoi faire avec le modèle sans aléa
         return self.coords
 
-    def _minSimplet(self, modele, alpha, beta):
+    def _minSimplet(self, modele, alpha=float('-Inf'), beta=float('Inf')):
         #print("Min, tour = ",len(modele.tapis[-1]))
         #print(modele)
         numMin=(self.numero+1)%modele.nb_joueurs
@@ -96,17 +95,17 @@ class IAMarrakech(JoueurMarrakech):
 
         #worst=float('Inf')
         angles=[-1,0,1]
-        #random.shuffle(angles)
+        random.shuffle(angles)
         for angle in angles:
             modele.changeDir(numMin, angle)
             self.stat_noeuds+=1
             babouchesPossibles=[b+1 for b, carte in enumerate(modele.nb_cartes_deplacement[numMin]) if carte > 0]
-            #random.shuffle(babouchesPossibles)
+            random.shuffle(babouchesPossibles)
             for babouches in babouchesPossibles:
                 modele.avanceAssam(numMin, babouches)
                 self.stat_noeuds+=1
                 tapisPossibles=modele.plateau.coups_possibles()
-                #random.shuffle(tapisPossibles)
+                random.shuffle(tapisPossibles)
                 for coordstapis in tapisPossibles:
                     modele.poseTapis(numMin, coordstapis)
                     self.stat_noeuds+=1
@@ -115,7 +114,6 @@ class IAMarrakech(JoueurMarrakech):
                     if current < beta:
                         beta = current
                         if alpha >= beta:
-                            self.stat_coupe+=1
                             modele.undo()
                             modele.undo()
                             modele.undo()
@@ -133,33 +131,36 @@ class IAMarrakech(JoueurMarrakech):
         if len(modele.tapis[-1]) == 0:
             return self._eval(modele)
 
+
+
         #best=float('-Inf')
         angles=[-1,0,1]
-        #random.shuffle(angles)
+        random.shuffle(angles)
         for angle in angles:
             modele.changeDir(self.numero, angle)
             self.stat_noeuds+=1
             babouchesPossibles=[b+1 for b, carte in enumerate(modele.nb_cartes_deplacement[self.numero]) if carte > 0]
-            #random.shuffle(babouchesPossibles)
+            random.shuffle(babouchesPossibles)
             for babouches in babouchesPossibles:
                 modele.avanceAssam(self.numero, babouches)
                 self.stat_noeuds+=1
                 tapisPossibles=modele.plateau.coups_possibles()
-                #random.shuffle(tapisPossibles)
+                random.shuffle(tapisPossibles)
                 for coordstapis in tapisPossibles:
                     modele.poseTapis(self.numero, coordstapis)
                     self.stat_noeuds+=1
-                    if first and self.angle == None: self.setCoup(angle, babouches, coordstapis)
+                    if first and self.angle == None:
+                        self.setCoup(angle, babouches, coordstapis)
                     current = self._minSimplet(modele,alpha,beta)
                     if current > alpha:
                         alpha = current
-                        if first: self.setCoup(angle, babouches, coordstapis)
-                        if alpha >= beta:
-                            self.stat_coupe+=1
-                            modele.undo()
-                            modele.undo()
-                            modele.undo()
-                            return alpha
+                        if first:
+                            self.setCoup(angle, babouches, coordstapis)
+                            if beta <= alpha:
+                                modele.undo()
+                                modele.undo()
+                                modele.undo()
+                                return alpha
                     modele.undo()
                 modele.undo()
             modele.undo()

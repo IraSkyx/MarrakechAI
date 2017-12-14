@@ -18,7 +18,7 @@
 # Ce logiciel est régi par la licence CeCILL soumise au droit français et
 # respectant les principes de diffusion des logiciels libres. Vous pouvez
 # utiliser, modifier et/ou redistribuer ce programme sous les conditions
-# de la licence CeCILL telle que diffusée par le CEA, le CNRS et l'INRIA 
+# de la licence CeCILL telle que diffusée par le CEA, le CNRS et l'INRIA
 # sur le site "http://www.cecill.info".
 
 # En contrepartie de l'accessibilité au code source et des droits de copie,
@@ -29,22 +29,22 @@
 
 # A cet égard  l'attention de l'utilisateur est attirée sur les risques
 # associés au chargement,  à l'utilisation,  à la modification et/ou au
-# développement et à la reproduction du logiciel par l'utilisateur étant 
-# donné sa spécificité de logiciel libre, qui peut le rendre complexe à 
+# développement et à la reproduction du logiciel par l'utilisateur étant
+# donné sa spécificité de logiciel libre, qui peut le rendre complexe à
 # manipuler et qui le réserve donc à des développeurs et des professionnels
 # avertis possédant  des  connaissances  informatiques approfondies.  Les
 # utilisateurs sont donc invités à charger  et  tester  l'adéquation  du
 # logiciel à leurs besoins dans des conditions permettant d'assurer la
-# sécurité de leurs systèmes et ou de leurs données et, plus généralement, 
-# à l'utiliser et l'exploiter dans les mêmes conditions de sécurité. 
+# sécurité de leurs systèmes et ou de leurs données et, plus généralement,
+# à l'utiliser et l'exploiter dans les mêmes conditions de sécurité.
 
-# Le fait que vous puissiez accéder à cet en-tête signifie que vous avez 
+# Le fait que vous puissiez accéder à cet en-tête signifie que vous avez
 # pris connaissance de la licence CeCILL, et que vous en avez accepté les
 # termes.
 
 
 ############################
-# Jeu de Marrakech sans dé : chaque joueur reçoit au moins autant de cartes de déplacements que de tapis et va les utilise à la place du dé du jeu classique. 
+# Jeu de Marrakech sans dé : chaque joueur reçoit au moins autant de cartes de déplacements que de tapis et va les utilise à la place du dé du jeu classique.
 # On est donc dans un jeu où le tour d'un joueur est en fait composé de trois actions de jeu successives par ce joueur :
 # 1) le joueur choisit la direction d'Assan (comme dans le jeu normal); puis,
 # 2) le joueur choisit la distance parcourue par Assan en sélectionnant une carte de déplacement; puis,
@@ -58,7 +58,7 @@ debug = True
 
 class JoueurMarrakech(object):
     """Un joueur est représenté par son numéro.
-    Il est recommandé de cloner profondèment le modèle avant de le passer en paramètre au joueur, en particulier si ce joueur est une IA, pour éviter toute pollution intempestive du vrai jeu par l'IA... aka de la triche. 
+    Il est recommandé de cloner profondèment le modèle avant de le passer en paramètre au joueur, en particulier si ce joueur est une IA, pour éviter toute pollution intempestive du vrai jeu par l'IA... aka de la triche.
     """
     numero = 0
 
@@ -83,7 +83,7 @@ class JoueurMarrakech(object):
 
 class ModeleMarrakechSansAlea(object):
     """Le modèle du jeu Marrakech
-    
+
     Attributs :
     plateau : le plateau
     nb_joueurs : le nombre de joueurs
@@ -92,13 +92,13 @@ class ModeleMarrakechSansAlea(object):
     _coups     : liste des coups joués (historique)
     coup_courant : coup en construction (puisque un tour de jeu d'un joeur se décompose en plusieurs micro-actions, on ne met dans l'historique que des coups complets)
     _coup_supprimes : pour faire un redo (futur qu'on pourrait rejouer)
-    _ coefs_deplacements : liste dont l'index (+1) corresponds au nombre de pas autorisés pour Assan, la valeur indiquant le nombre de face du dé donnant cette distance. (le dé a autant de faces que la somme des éléments de cette liste, par exemple [1, 2, 2, 1] pour les règles classiques avec un dé à 6 faces). 
+    _ coefs_deplacements : liste dont l'index (+1) corresponds au nombre de pas autorisés pour Assan, la valeur indiquant le nombre de face du dé donnant cette distance. (le dé a autant de faces que la somme des éléments de cette liste, par exemple [1, 2, 2, 1] pour les règles classiques avec un dé à 6 faces).
 
     Nouveau dans la version sans alea
     nb_cartes_deplacement : liste indexée par le numéro du joueur contenant à la position de ce dernier la liste des cartes de déplacement qu'il n'a pas encore jouées
                             Par exemple [1, 2, 2, 1] voudrait dire 1 carte de distance 1, 2 de distances 2, 2 de distance 3 et 1 de distance 4.
     """
-    
+
     def __init__(self, nb_joueurs):
         "Initialise les tapis, le plateau, … "
         self.plateau = Plateau()
@@ -150,26 +150,26 @@ class ModeleMarrakechSansAlea(object):
         repeats=int(self.nb_tapis_par_joueur/sum(self.coefs_deplacements))+1
         self.modele_nb_cartes_deplacement = [i*repeats for i in self.coefs_deplacements]
         # mode simplifié : on ne peut pas choisir la distance (pratique pour débug / proto rapide d'IA).
-        # if debug: self.modele_nb_cartes_deplacement=[self.nb_tapis_par_joueur]
+        #if debug: self.modele_nb_cartes_deplacement=[self.nb_tapis_par_joueur]
         #
         self.nb_cartes_deplacement = []
         for i in range(nb_joueurs):
             self.nb_cartes_deplacement.append(self.modele_nb_cartes_deplacement[:])
         #print(self.nb_cartes_deplacement)
-        
+
         # La liste de tous les coups joués
-        self._coups = [] 
+        self._coups = []
 
         ### obsolète
         # self.coup_courant = Coup((0, 0, 0), self.plateau.assam.clone(), 0)
 
         # La liste des coups que l'on peut rejouer (au sens classique d'un do/undo dans une interface par exemple).
         # cette liste est remise à vide si un nouveau coup est joué
-        self._coups_supprimes = [] 
+        self._coups_supprimes = []
 
     def undo(self, history=False):
-        """Annule la dernière action jouée (3 undo à faire pour le tour entier d'un joueur). 
-        history fait de facto référence à l'anti-histoire, i.e. la pile d'action à rejouer dans le cadre du redo. 
+        """Annule la dernière action jouée (3 undo à faire pour le tour entier d'un joueur).
+        history fait de facto référence à l'anti-histoire, i.e. la pile d'action à rejouer dans le cadre du redo.
         Typiquement une interface appelle avec l'option history=True alors qu'une IA va utiliser False"""
         try :
             coup = self._coups.pop()
@@ -204,7 +204,7 @@ class ModeleMarrakechSansAlea(object):
         self.plateau.plateau[coup.coords[1][0]][coup.coords[1][1]].tasdetapis.pop()
         # on remet le tapis sur le tas du joueur
         self.tapis[coup.tapis.couleur()].append(coup.tapis)
-    
+
     def redo(self):
         """Refait le dernier coup annulé s'il existe"""
         try :
@@ -214,7 +214,7 @@ class ModeleMarrakechSansAlea(object):
             raise e
         coup.redo(self)
         self._coups.append(coup)
-        
+
     def _ChangeDir(self, coup):
         self.plateau.assam.tourne(coup.dir)
 
@@ -229,7 +229,7 @@ class ModeleMarrakechSansAlea(object):
     def _AvanceAssam(self, coup):
         """Note : sauf en cas de redo, on ne connaît pas la partie dette qu'on doit calculer."""
         self.plateau.avance_Assam(0, coup.babouches)#0 c'est la direction. Nota Bene : on devrait probablement changer l'API en enlevant ce paramètre
-        if coup.joueur_payé is None : 
+        if coup.joueur_payé is None :
             coup.joueur_payé = self.plateau.couleur_assam() # peut encore être None si pas de tapis
             if coup.joueur_payé is not None and coup.joueur != coup.joueur_payé:
                 ### insolvable à gérer ici pour que le undo marche correctement (c'est l'argent de joueur qui paye qui permet de savoir si il est solvable)!
@@ -255,16 +255,16 @@ class ModeleMarrakechSansAlea(object):
                     break
                 babouches = babouches%size + 1
                 babouches = self.nb_cartes_deplacement[joueurNum][babouches-1]
-                i += 1            
+                i += 1
         coup = CoupAvanceAssam(joueurNum, babouches)
         self._AvanceAssam(coup)
         self._coups.append(coup)
 
     def _PoseTapis(self, coup):
         self.plateau.pose_tapis(coup.coords, coup.tapis)
-        
-    def poseTapis(self, num_joueur, coords): 
-        """Légèrement unsafe : on ne vérifie pas si le tapis a le droit d'être posé . 
+
+    def poseTapis(self, num_joueur, coords):
+        """Légèrement unsafe : on ne vérifie pas si le tapis a le droit d'être posé .
         C'set au controleur de le faire
         """
         # On pourrait changer l'API et délèguer au controleur le soin de récupérer un numéro d'index valide de coups_possibles?
@@ -273,7 +273,7 @@ class ModeleMarrakechSansAlea(object):
         coup = CoupPoseTapis(num_joueur, coords, self.tapis[num_joueur].pop())
         self._PoseTapis(coup)
         self._coups.append(coup)
-    
+
     def paye(self, donneur, receveur, dirhams):
         """on vérifie quand même que le donneur est solvable (vérif normalement inutile maintenant puisqu'on le fait dans avanceAssan)"""
         if dirhams != 0:
@@ -294,7 +294,7 @@ class ModeleMarrakechSansAlea(object):
         points = self.plateau.nb_tapis_exposes(self.nb_joueurs)
         for i in range(self.nb_joueurs): points[i] += self.dirhams[i]
         return points
-        
+
     def __str__(self):
         ret = self.plateau.__str__()
         ret += "\n\nJoueurs     "
@@ -311,7 +311,7 @@ class ModeleMarrakechSansAlea(object):
         for i in range(self.nb_joueurs): ret += "%4d"%nb_tapis_exposes[i]
         ret += "\n\ntotal      "
         points = self.points()
-        for i in range(self.nb_joueurs): ret += "%4d"%points[i]        
+        for i in range(self.nb_joueurs): ret += "%4d"%points[i]
         return ret
 
     def pretty_historique(self):
@@ -327,9 +327,9 @@ class ModeleMarrakechSansAlea(object):
         """Pas clair qu'il faille le mettre, il y a un comparateur par défaut?
         To check : doit-on définir un comparateur récursivement pour les objets apparaissant dans le modèle?"""
         #return self.__dict__ == other.__dict__#Semble rentre différents même des choses semblables?
-        return self.dirhams == other.dirhams ### seul le pognon pose problème dans le undo?    
+        return self.dirhams == other.dirhams ### seul le pognon pose problème dans le undo?
 
-    
+
 class Assam(object):
     "Attributs : x, y les coordonnées, dir la direction 0 à 3 pour N, E, S, W"
     def __init__(self, x=-1, y=-1, dir = 2):
@@ -367,7 +367,7 @@ class Tapis(object):
 
     def couleur(self):
         return self._couleur
-        
+
     #def __str__(self):
     #    return "%d"%self._couleur
 
@@ -394,7 +394,7 @@ class CoupChangeDir(Coup):
     Attribut : la direction -1, 0 ou +1 pour gauche, tout droit ou à droite.
     """
     dirToStr = {-1 : "à gauche", 0 : "tout droit" , 1 : "à droite"}
-    
+
     def __init__(self, joueur, dir):
         assert(dir in [-1, 0, 1])
         self.dir = dir
@@ -410,13 +410,13 @@ class CoupChangeDir(Coup):
         modele._ChangeDir(self)
 
 class CoupAvanceAssam(Coup):
-    """action correspondant à une avancée de Assam. 
+    """action correspondant à une avancée de Assam.
     Attribut hérité : le joueur faisant le coup
-    babouches : la distance parcourue par Assam 
+    babouches : la distance parcourue par Assam
     joueur_payé : couleur du tapis sur lequel Assam tombe
     dirhams : somme payée par joueur (faisant le coup) à joueur_payé.
     """
-        
+
     def __init__(self, joueur, babouches, joueur_payé=None, dirhams=0):
         assert(dirhams>=0)
         super().__init__(joueur)
@@ -453,7 +453,7 @@ class CoupPoseTapis(Coup):
 
     def __str__(self):
         return "Joueur "+ str(self.joueur) + " pose son tapis en " + str(self.coords) +"."
-    
+
     def undo(self, modele):
         modele._undoPoseTapis(self)
 
@@ -481,21 +481,21 @@ class Case(object):
         if self.tasdetapis:
             return self.tasdetapis[-1]
         return None
-        
+
     def couleur(self):
         if self.tasdetapis:
             return self.tasdetapis[-1].couleur()
         return None
-        
+
 
 class Plateau(object):
     """ Le plateau est un tableau à 2 dimensions de Cases réalisé en Python par une liste de colonne.
     Les colonnes sont représentées par une liste de Case.
     Il est mis à jour après chaque coup joué.
     Attributs.
-    assam : 
+    assam :
     plateau qui est un tableau à 2 dimensions de Cases.
-    
+
     """
     TAILLEPLATEAU = 7 # côté du plateau carré
 
@@ -511,7 +511,7 @@ class Plateau(object):
     @staticmethod
     def taille_plateau():
         """Le premier appel normalise la taille à l'impair supérieur si nécessaire"""
-        if Plateau.TAILLEPLATEAU % 2 == 0: 
+        if Plateau.TAILLEPLATEAU % 2 == 0:
             Plateau.TAILLEPLATEAU += 1
         return Plateau.TAILLEPLATEAU
 
@@ -523,13 +523,13 @@ class Plateau(object):
             for c in range(Plateau.TAILLEPLATEAU):
                 colonne.append(Case())
             self.plateau.append(colonne)
-            
+
         for x, colonne in enumerate(self.plateau):
             for y, case in enumerate(colonne):
                 case.voisines = self._calcul_cases_voisines(x, y)
 
         self._taille_region = []
-    
+
     def pose_tapis(self, coords, tapis):
         self.plateau[coords[0][0]][coords[0][1]].tasdetapis.append(tapis)
         self.plateau[coords[1][0]][coords[1][1]].tasdetapis.append(tapis)
@@ -541,7 +541,7 @@ class Plateau(object):
         t1= self.plateau[coords[0][0]][coords[0][1]].tasdetapis.pop()
         t2 =self.plateau[coords[1][0]][coords[1][1]].tasdetapis.pop()
         assert(t1 == t2 and t1 == tapis)
-        
+
     def _calcul_cases_voisines(self, x, y):
         "Génère les couples (case_voisine_valide, direction) pour la case (x, y)"
         deplacement_case4 = ((0, -1), (1, 0), (0, 1), (-1, 0))
@@ -564,7 +564,7 @@ class Plateau(object):
                 if (mini > e): mini = e
         # print(x, y, etiquettes, " : ", mini)
         return (etiquettes, mini)
-                
+
     def calcul_region(self):
         """etiquète les régions unicolores et calcule leurs tailles
         L'algo est décrit à https://en.wikipedia.org/wiki/Connected-component_labeling
@@ -574,13 +574,13 @@ class Plateau(object):
             for y, case in enumerate(colonne):
                 case.etiquette_region = Plateau.TAILLEPLATEAU*Plateau.TAILLEPLATEAU
        # 1re passe
-        etiquette_region = 0 
+        etiquette_region = 0
         for x, colonne in enumerate(self.plateau):
             for y, c in enumerate(colonne):
                 t = c.letapis()
                 if t != None:
                     etiquettes, mini = self._etiquettes_voisines(c, t)
-                    if len(etiquettes) == 0: 
+                    if len(etiquettes) == 0:
                         assert(mini == Plateau.TAILLEPLATEAU*Plateau.TAILLEPLATEAU)
                         # pas de voisines étiquetées
                         # on assigne une nouvelle étiquette région
@@ -607,7 +607,7 @@ class Plateau(object):
         for x, colonne in enumerate(self.plateau):
             for y, c in enumerate(colonne):
                 nelle_etiquette = union_find[c.etiquette_region]
-                c.etiquette_region = nelle_etiquette 
+                c.etiquette_region = nelle_etiquette
                 if nelle_etiquette not in self._taille_region:
                     self._taille_region[nelle_etiquette] = 1
                 else:
@@ -615,7 +615,7 @@ class Plateau(object):
         # par convention le fond a une région de taille 0
         self._taille_region[Plateau.TAILLEPLATEAU*Plateau.TAILLEPLATEAU] = 0
 
-    def taille_region(self, x, y): 
+    def taille_region(self, x, y):
         e = self.plateau[x][y].etiquette_region
         return self._taille_region[e] if e in self._taille_region else 0
 
@@ -651,12 +651,12 @@ class Plateau(object):
     @staticmethod
     def coords_valides(coords):
         "Est-ce que les coords sont dans le plateau ?"
-        return 0 <= coords[0] and coords[0] < Plateau.TAILLEPLATEAU and 0 <= coords[1] and coords[1] < Plateau.TAILLEPLATEAU 
+        return 0 <= coords[0] and coords[0] < Plateau.TAILLEPLATEAU and 0 <= coords[1] and coords[1] < Plateau.TAILLEPLATEAU
 
     def coups_possibles(self):
         "calcule tous les coups possibles, retourne une liste de Coups avec un tapis égal à None"
         ret = []
-        
+
         deplacement_case4 = ((0, -1), (1, 0), (0, 1), (-1, 0))
         deplacement_voisine_case4 =(
             ((-1, -1), ( 0, -2), (+1, -1)),
@@ -678,7 +678,7 @@ class Plateau(object):
                             if (cc_tapis == None) or (not (c_tapis is cc_tapis)):
                                 ret.append((c, cc))
         return ret
-    
+
     def avance_Assam(self, dir, nb_cases):
         """Avance Assam en connaissant les renvois en bout de ligne/colonne
         Le code peut sûrement être factorisé et perdre en clarté (déjà qu'il est touffu !)
@@ -764,15 +764,15 @@ class Plateau(object):
         """ Repose tous les tapis si il s'agit de dépôt de tapis. Non utilisé. """
         for coup in coups:
             coup.refresh(self)
-        
+
     def __7bits_str__(self):
         "sortie en ascii art 7 bits"
         inter_ligne = "\n    "
-        for y in range(Plateau.TAILLEPLATEAU): 
+        for y in range(Plateau.TAILLEPLATEAU):
             inter_ligne += "+---"
         inter_ligne += "+\n"
         ret = "   "
-        for y in range(Plateau.TAILLEPLATEAU): 
+        for y in range(Plateau.TAILLEPLATEAU):
             ret += "%4d"%y
         ret += inter_ligne
         for y in range(Plateau.TAILLEPLATEAU):
@@ -790,7 +790,7 @@ class Plateau(object):
         "sortie en unicode art"
         # Les codes ANSI d'échappement https://en.wikipedia.org/wiki/ANSI_escape_code
         # permettent de changer la couleur du fond ESC[4?m
- 	# soit 41, 42, 43, 44 pour respectivement Red, Green, Yellow, Blue 	
+ 	# soit 41, 42, 43, 44 pour respectivement Red, Green, Yellow, Blue
         eol = "\n    "
         ret = eol+"      "
         for c in range(0, Plateau.TAILLEPLATEAU): ret += "%2d  "%c
@@ -800,8 +800,8 @@ class Plateau(object):
         for c in range(0, Plateau.TAILLEPLATEAU-1): ret += "┬───"
         ret += "┐ │  "
         for y in range(Plateau.TAILLEPLATEAU):
-            renvoi = "┌└"[y%2] 
-            ret += eol+" %d %c "% (y, renvoi) 
+            renvoi = "┌└"[y%2]
+            ret += eol+" %d %c "% (y, renvoi)
             for x in range(Plateau.TAILLEPLATEAU):
                 if self.assam.est_a(x, y):
                     a = self.assam.str_dir()
@@ -812,7 +812,7 @@ class Plateau(object):
                 t = self.plateau[x][y].letapis()
                 t_ansi_color = 0 if t is None else 40+t.couleur()+1
                 if t is None or x == 0 or not self.plateau[x-1][y].letapis() is t:
-                    ret += "│" 
+                    ret += "│"
                 else:
                     ret += "\033[%dm \033[0m"%t_ansi_color
                 b = "  " #if not Plateau.use_unionfind else "%2d"%self.taille_region(x, y)
@@ -852,7 +852,7 @@ if __name__ == "__main__":
     # #for i in range(6):
     # for i in range(nb_tapis*nb_joueurs):
     #     print("Coup %d"%i)
-    #     #if i == 5: 
+    #     #if i == 5:
     #     debug = True
     #     m.avance_Assam(-1+i%3)
     #     print("Coups possibles : "+m.plateau.assam.coords().__str__())
@@ -871,7 +871,7 @@ if __name__ == "__main__":
     print(m)
     print("*** historique *** ", m.pretty_historique())
     m.undo()
-    
+
     print(m)
     print("*** historique *** ", m.pretty_historique())
     m.poseTapis(1,((2, 1), (2, 0)))
@@ -902,4 +902,3 @@ if __name__ == "__main__":
     print(m)
     print("*** historique *** ", m.pretty_historique())
     #print(m.__dict__)
-    
