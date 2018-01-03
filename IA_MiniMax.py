@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# IAMarrakech.py
+# MonIASimpletteSansAlea.py
 
 # Copyright Florent Madelaine, (1/12/2017)
 
@@ -46,7 +46,7 @@ import random
 
 debug = False #True
 
-class IAMarrakech(JoueurMarrakech):
+class MonIASimpletteSansAlea(JoueurMarrakech):
 
     def __init__(self):
         super().__init__()
@@ -85,86 +85,78 @@ class IAMarrakech(JoueurMarrakech):
         # On sait déjà quoi faire avec le modèle sans aléa
         return self.coords
 
-    def _minSimplet(self, modele, alpha=float('-Inf'), beta=float('Inf')):
-        #print("Min, tour = ",len(modele.tapis[-1]))
-        #print(modele)
+    def _minSimplet(self, modele):
+        print("Min, tour = ",len(modele.tapis[-1]))
+        print(modele)
         numMin=(self.numero+1)%modele.nb_joueurs
         """Meilleur coup local pour Joueur"""
         if len(modele.tapis[-1]) == 0:
             return self._eval(modele)
 
-        #worst=float('Inf')
-        angles=[-1,0,1]
-        random.shuffle(angles)
-        for angle in angles:
+        worst=float('Inf')
+
+        for angle in [-1,0,1]:
             modele.changeDir(numMin, angle)
             self.stat_noeuds+=1
             babouchesPossibles=[b+1 for b, carte in enumerate(modele.nb_cartes_deplacement[numMin]) if carte > 0]
-            random.shuffle(babouchesPossibles)
             for babouches in babouchesPossibles:
                 modele.avanceAssam(numMin, babouches)
                 self.stat_noeuds+=1
                 tapisPossibles=modele.plateau.coups_possibles()
-                random.shuffle(tapisPossibles)
                 for coordstapis in tapisPossibles:
                     modele.poseTapis(numMin, coordstapis)
                     self.stat_noeuds+=1
 
-                    current = self._maxSimplet(modele,alpha,beta)
-                    if current < beta:
-                        beta = current
-                        if alpha >= beta:
+                    current = self._maxSimplet(modele)
+                    if current < worst:
+                        worst = current
+                        if worst == float('-Inf'):
                             modele.undo()
                             modele.undo()
                             modele.undo()
-                            return beta
+                            return worst
                     modele.undo()
                 modele.undo()
             modele.undo()
-        return beta
+        return worst
 
 
-    def _maxSimplet(self,modele, first=False, alpha=float('-Inf'), beta=float('Inf')):
-        #print("Max, tour = ",len(modele.tapis[-1]))
-        #print(modele)
+    def _maxSimplet(self,modele, first=False):
+        print("Max, tour = ",len(modele.tapis[-1]))
+        print(modele)
         """Meilleur coup local pour Joueur"""
         if len(modele.tapis[-1]) == 0:
             return self._eval(modele)
 
+        best=float('-Inf')
 
-
-        #best=float('-Inf')
-        angles=[-1,0,1]
-        random.shuffle(angles)
-        for angle in angles:
+        for angle in [-1,0,1]:
             modele.changeDir(self.numero, angle)
             self.stat_noeuds+=1
             babouchesPossibles=[b+1 for b, carte in enumerate(modele.nb_cartes_deplacement[self.numero]) if carte > 0]
-            random.shuffle(babouchesPossibles)
             for babouches in babouchesPossibles:
                 modele.avanceAssam(self.numero, babouches)
                 self.stat_noeuds+=1
                 tapisPossibles=modele.plateau.coups_possibles()
-                random.shuffle(tapisPossibles)
                 for coordstapis in tapisPossibles:
                     modele.poseTapis(self.numero, coordstapis)
                     self.stat_noeuds+=1
                     if first and self.angle == None:
                         self.setCoup(angle, babouches, coordstapis)
-                    current = self._minSimplet(modele,alpha,beta)
-                    if current > alpha:
-                        alpha = current
+                    current = self._minSimplet(modele)
+                    if current > best:
+                        best = current
                         if first:
                             self.setCoup(angle, babouches, coordstapis)
-                            if beta <= alpha:
-                                modele.undo()
-                                modele.undo()
-                                modele.undo()
-                                return alpha
+                        if best == float('Inf'):
+                            modele.undo()
+                            modele.undo()
+                            modele.undo()
+                            return best
                     modele.undo()
                 modele.undo()
             modele.undo()
-        return alpha
+        return best
 
     def _eval(self, modele):
         """ evaluation simpliste du coup"""
