@@ -170,9 +170,12 @@ if __name__ == "__main__":
     #random.seed(0) # pour avoir le même random à chaque fois
     import sys
     from MonIASimpletteSansAlea import *
-    from IAMarrakech import *
+    from IAMiniMax import *
+    from IAMiniMaxApprox import *
+    from IAAlphaBeta import *
+    from IAMaxN import *
     #
-    dict_types_joueurs = {"hasard" : JoueurAuHasard, "IAMarrakech" : IAMarrakech, "clavier": JoueurLDC, "simple" : MonIASimpletteSansAlea}
+    dict_types_joueurs = {"hasard" : JoueurAuHasard, "IAMiniMax": IAMiniMax, "IAMiniMaxApprox": IAMiniMaxApprox, "IAAlphaBeta": IAAlphaBeta, "IAMaxN": IAMaxN, "clavier": JoueurLDC, "simple" : MonIASimpletteSansAlea}
     strplayers=""
     for v in dict_types_joueurs.keys():
         strplayers+=str(v)+" "

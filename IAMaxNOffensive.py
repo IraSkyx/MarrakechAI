@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# MonIASimpletteSansAlea.py
+# IAMarrakech.py
 
 # Copyright Florent Madelaine, (1/12/2017)
 
@@ -46,7 +46,7 @@ import random
 
 debug = False #True
 
-class MonIASimpletteSansAlea(JoueurMarrakech):
+class IAMaxN(JoueurMarrakech):
 
     def __init__(self):
         super().__init__()
@@ -56,6 +56,8 @@ class MonIASimpletteSansAlea(JoueurMarrakech):
         self.evaluationPosition = None
         self.stat_noeuds = 0
         self.stat_feuilles = 0
+        self.stat_coupe = 0
+        self.max_depth = None #si depth == none alors je l'initialise
 
     def __str__(self):
         return "\033[%dm %d \033[0m"%(self.numero+41, self.numero)
@@ -66,13 +68,13 @@ class MonIASimpletteSansAlea(JoueurMarrakech):
         self.coords = coords
 
     def stats(self):
-        return "Stats : noeuds internes "+ str(self.stat_noeuds) + " feuilles "+ str(self.stat_feuilles)
+        return "Stats : noeuds internes "+ str(self.stat_noeuds) + " feuilles "+ str(self.stat_feuilles) + " Stats : coupes "+ str(self.stat_coupe)
 
     def changer_direction(self,modele):
         print("\nMon IA %s"%self)
         self.setCoup()
-        self.stat_noeuds = self.stat_feuilles = 0
-        self.evaluationPosition = self._maxSimplet(modele, True)
+        self.stat_noeuds = self.stat_feuilles = self.stat_coupe = 0
+        self.evaluationPosition = self._maxSimplet(self.numero,0,modele, True)
         print(self.stats())
         print("Choix : dir " + str(self.angle) +" babouches " + str(self.babouches) + " tapis " + str(self.coords))
         print("Evaluation : " + str(self.evaluationPosition))
@@ -85,100 +87,53 @@ class MonIASimpletteSansAlea(JoueurMarrakech):
         # On sait déjà quoi faire avec le modèle sans aléa
         return self.coords
 
-    def _minSimplet(self, modele):
-        print("Min, tour = ",len(modele.tapis[-1]))
-        print(modele)
-        numMin=(self.numero+1)%modele.nb_joueurs
+    def _maxSimplet(self, numPlayer, depth, modele, first=False):
         """Meilleur coup local pour Joueur"""
-        if len(modele.tapis[-1]) == 0:
+
+        if self.max_depth == None:
+            self.max_depth=6*modele.nb_joueurs
+
+        if len(modele.tapis[-1]) == 0 or depth == self.max_depth:
+            if depth == self.max_depth:
+                print("Max_depth =" + str(self.max_depth) + " et depth =" + str(depth))
             return self._eval(modele)
 
-        worst=float('Inf')
+        score=[]
+        for i in range(modele.nb_joueurs):
+            score.append(float('-Inf'))
 
-        for angle in [-1,0,1]:
-            modele.changeDir(numMin, angle)
+        angles=[-1,0,1]
+        random.shuffle(angles)
+
+        for angle in angles:
+            modele.changeDir(numPlayer, angle)
             self.stat_noeuds+=1
-            babouchesPossibles=[b+1 for b, carte in enumerate(modele.nb_cartes_deplacement[numMin]) if carte > 0]
+            babouchesPossibles=[b+1 for b, carte in enumerate(modele.nb_cartes_deplacement[numPlayer]) if carte > 0]
+            random.shuffle(babouchesPossibles)
+
             for babouches in babouchesPossibles:
-                modele.avanceAssam(numMin, babouches)
+                modele.avanceAssam(numPlayer, babouches)
                 self.stat_noeuds+=1
                 tapisPossibles=modele.plateau.coups_possibles()
+                random.shuffle(tapisPossibles)
+
                 for coordstapis in tapisPossibles:
-                    modele.poseTapis(numMin, coordstapis)
-                    self.stat_noeuds+=1
-
-                    current = self._maxSimplet(modele)
-                    if current < worst:
-                        worst = current
-                        if worst == float('-Inf'):
-                            modele.undo()
-                            modele.undo()
-                            modele.undo()
-                            return worst
-                    modele.undo()
-                modele.undo()
-            modele.undo()
-        return worst
-
-
-    def _maxSimplet(self,modele, first=False):
-        print("Max, tour = ",len(modele.tapis[-1]))
-        print(modele)
-        """Meilleur coup local pour Joueur"""
-        if len(modele.tapis[-1]) == 0:
-            return self._eval(modele)
-
-        best=float('-Inf')
-
-        for angle in [-1,0,1]:
-            modele.changeDir(self.numero, angle)
-            self.stat_noeuds+=1
-            babouchesPossibles=[b+1 for b, carte in enumerate(modele.nb_cartes_deplacement[self.numero]) if carte > 0]
-            for babouches in babouchesPossibles:
-                modele.avanceAssam(self.numero, babouches)
-                self.stat_noeuds+=1
-                tapisPossibles=modele.plateau.coups_possibles()
-                for coordstapis in tapisPossibles:
-                    modele.poseTapis(self.numero, coordstapis)
+                    modele.poseTapis(numPlayer, coordstapis)
                     self.stat_noeuds+=1
                     if first and self.angle == None:
                         self.setCoup(angle, babouches, coordstapis)
-                    current = self._minSimplet(modele)
-                    if current > best:
-                        best = current
-                        if first:
-                            self.setCoup(angle, babouches, coordstapis)
-                        if best == float('Inf'):
-                            modele.undo()
-                            modele.undo()
-                            modele.undo()
-                            return best
+
+                    current = self._maxSimplet((numPlayer+1)%modele.nb_joueurs,depth+1,modele)
+
+                    if current[numPlayer] > score[numPlayer]:
+                        score[numPlayer] = current[numPlayer]
+                        if first: self.setCoup(angle, babouches, coordstapis)
                     modele.undo()
                 modele.undo()
             modele.undo()
-        return best
+        return score
 
     def _eval(self, modele):
         """ evaluation simpliste du coup"""
         self.stat_feuilles+=1
-        points = modele.points()
-        if len(modele.tapis[-1]) == 0:
-            # endgame : dernier joueur n'a plus de tapis
-            res=float('Inf')
-            for i in range(modele.nb_joueurs):
-                if (i == self.numero):
-                    pass
-                else:
-                    if points[i] > points[self.numero]:
-                        return float('-Inf')
-                    if points[i] == points[self.numero]:
-                        res=0
-            return res
-        # heuristique : calcul partiel des points
-        res=0
-        for i in range(modele.nb_joueurs):
-            if (i == self.numero):
-                res+= points[i]
-            else:
-                res -= points[i]
-        return res
+        return modele.points()
