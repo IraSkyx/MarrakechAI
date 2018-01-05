@@ -46,7 +46,7 @@ import random
 
 debug = False #True
 
-class IAMaxNOffensive(JoueurMarrakech):
+class IAMaxNApprox(JoueurMarrakech):
 
     def __init__(self):
         super().__init__()
@@ -57,7 +57,7 @@ class IAMaxNOffensive(JoueurMarrakech):
         self.stat_noeuds = 0
         self.stat_feuilles = 0
         self.stat_coupe = 0
-        self.max_depth = None #si depth == none alors je l'initialise
+        self.max_depth = None
 
     def __str__(self):
         return "\033[%dm %d \033[0m"%(self.numero+41, self.numero)
@@ -91,11 +91,9 @@ class IAMaxNOffensive(JoueurMarrakech):
         """Meilleur coup local pour Joueur"""
 
         if self.max_depth == None:
-            self.max_depth=6*modele.nb_joueurs
+            self.max_depth=2*modele.nb_joueurs
 
         if len(modele.tapis[-1]) == 0 or depth == self.max_depth:
-            if depth == self.max_depth:
-                print("Max_depth =" + str(self.max_depth) + " et depth =" + str(depth))
             return self._eval(modele)
 
         score=[]

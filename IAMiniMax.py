@@ -86,8 +86,7 @@ class IAMiniMax(JoueurMarrakech):
         return self.coords
 
     def _minSimplet(self, modele):
-        #print("Min, tour = ",len(modele.tapis[-1]))
-        #print(modele)
+
         numMin=(self.numero+1)%modele.nb_joueurs
         """Meilleur coup local pour Joueur"""
         if len(modele.tapis[-1]) == 0:
@@ -122,8 +121,7 @@ class IAMiniMax(JoueurMarrakech):
 
 
     def _maxSimplet(self,modele, first=False):
-        #print("Max, tour = ",len(modele.tapis[-1]))
-        #print(modele)
+
         """Meilleur coup local pour Joueur"""
         if len(modele.tapis[-1]) == 0:
             return self._eval(modele)

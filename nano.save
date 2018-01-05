@@ -1,0 +1,9 @@
+En resumé : 
+MiniMax : niquel en 3x3, pas de résultat en 5x5 (normal)
+MiniMaxApprox : niquel en 3x3 (amélioration de MiniMax classique), pas de résultat en 5x5 à plus de 2 de profondeur en 5x5
+AlphaBeta : niquel en 3x3, pas de résultat en 5x5
+AlphaBetaOpti (Shuffle + heuristique sur le premier coup) : niquel en 3x3, pas de résultat en 5x5
+MaxN : niquel en 3x3, pas de résultat en 5x5
+MaxNApprox : niquel en 3x3 (amélioration de MaxN classique), pas de résultat en 5x5 même à 2 de profondeur en 5x5
+MaxNParanoid : fait, je pense que ça doit marcher, difficilement vérifiable. En tout cas fonctionne en 3x3, pas en 5x5
+MaxNOffensive : à faire

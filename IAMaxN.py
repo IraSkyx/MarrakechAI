@@ -90,12 +90,10 @@ class IAMaxN(JoueurMarrakech):
     def _maxSimplet(self, numPlayer, depth, modele, first=False):
         """Meilleur coup local pour Joueur"""
 
-        if self.max_depth == None:
-            self.max_depth=6*modele.nb_joueurs
+        #if self.max_depth == None:
+        #    self.max_depth=6*modele.nb_joueurs
 
         if len(modele.tapis[-1]) == 0 or depth == self.max_depth:
-            if depth == self.max_depth:
-                print("Max_depth =" + str(self.max_depth) + " et depth =" + str(depth))
             return self._eval(modele)
 
         score=[]

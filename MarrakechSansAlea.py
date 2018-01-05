@@ -174,8 +174,11 @@ if __name__ == "__main__":
     from IAMiniMaxApprox import *
     from IAAlphaBeta import *
     from IAMaxN import *
+    from IAMaxNApprox import *
+    from IAMaxNParanoid import *
+    from IAMaxNOffensive import *
     #
-    dict_types_joueurs = {"hasard" : JoueurAuHasard, "IAMiniMax": IAMiniMax, "IAMiniMaxApprox": IAMiniMaxApprox, "IAAlphaBeta": IAAlphaBeta, "IAMaxN": IAMaxN, "clavier": JoueurLDC, "simple" : MonIASimpletteSansAlea}
+    dict_types_joueurs = {"hasard" : JoueurAuHasard, "IAMiniMax": IAMiniMax, "IAMiniMaxApprox": IAMiniMaxApprox, "IAAlphaBeta": IAAlphaBeta, "IAAlphaBetaOpti": IAAlphaBetaOpti, "IAMaxN": IAMaxN, "IAMaxNApprox": IAMaxNApprox, "IAMaxNParanoid": IAMaxNParanoid, "IAMaxNOffensive": IAMaxNOffensive, "clavier": JoueurLDC, "simple" : MonIASimpletteSansAlea}
     strplayers=""
     for v in dict_types_joueurs.keys():
         strplayers+=str(v)+" "
