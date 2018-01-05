@@ -170,15 +170,17 @@ if __name__ == "__main__":
     #random.seed(0) # pour avoir le même random à chaque fois
     import sys
     from MonIASimpletteSansAlea import *
-    from IAMiniMax import *
-    from IAMiniMaxApprox import *
-    from IAAlphaBeta import *
-    from IAMaxN import *
-    from IAMaxNApprox import *
-    from IAMaxNParanoid import *
-    from IAMaxNOffensive import *
+    from AIMiniMax import *
+    from AIMiniMaxApprox import *
+    from AIAlphaBeta import *
+    from AIAlphaBetaOpti import *
+    from AIMaxN import *
+    from AIMaxNApprox import *
+    from AIMaxNParanoid import *
+    from AIMaxNOffensive import *
+    from AIMaxNComplex import *
     #
-    dict_types_joueurs = {"hasard" : JoueurAuHasard, "IAMiniMax": IAMiniMax, "IAMiniMaxApprox": IAMiniMaxApprox, "IAAlphaBeta": IAAlphaBeta, "IAAlphaBetaOpti": IAAlphaBetaOpti, "IAMaxN": IAMaxN, "IAMaxNApprox": IAMaxNApprox, "IAMaxNParanoid": IAMaxNParanoid, "IAMaxNOffensive": IAMaxNOffensive, "clavier": JoueurLDC, "simple" : MonIASimpletteSansAlea}
+    dict_types_joueurs = {"hasard" : JoueurAuHasard, "AIMiniMax": AIMiniMax, "AIMiniMaxApprox": AIMiniMaxApprox, "AIAlphaBeta": AIAlphaBeta, "AIAlphaBetaOpti": AIAlphaBetaOpti, "AIMaxN": AIMaxN, "AIMaxNApprox": AIMaxNApprox, "AIMaxNParanoid": AIMaxNParanoid, "AIMaxNOffensive": AIMaxNOffensive, "AIMaxNComplex": AIMaxNComplex, "clavier": JoueurLDC, "simple" : MonIASimpletteSansAlea}
     strplayers=""
     for v in dict_types_joueurs.keys():
         strplayers+=str(v)+" "

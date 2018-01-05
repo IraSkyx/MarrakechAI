@@ -46,7 +46,7 @@ import random
 
 debug = False #True
 
-class IAMaxNOffensive(JoueurMarrakech):
+class AIMaxNParanoid(JoueurMarrakech):
 
     def __init__(self):
         super().__init__()
@@ -87,6 +87,18 @@ class IAMaxNOffensive(JoueurMarrakech):
         # On sait déjà quoi faire avec le modèle sans aléa
         return self.coords
 
+    def sumScore(self,modele,numPlayer,score):
+        sum=0
+        '''Sum for paranoid strategy'''
+        for i in range(modele.nb_joueurs):
+            if i != numPlayer and score[i] != float('-Inf'):
+                sum+=score[i]
+        return sum
+
+    def strategy(self,current,score,numPlayer):
+        '''Paranoid'''
+        return sum(current)-current[numPlayer] < sum(score)-score[numPlayer]
+
     def _maxSimplet(self, numPlayer, depth, modele, first=False):
         """Meilleur coup local pour Joueur"""
 
@@ -125,7 +137,7 @@ class IAMaxNOffensive(JoueurMarrakech):
 
                     current = self._maxSimplet((numPlayer+1)%modele.nb_joueurs,depth+1,modele)
 
-                    if current[numPlayer] > score[numPlayer]:
+                    if self.strategy(current,score,numPlayer):
                         score[numPlayer] = current[numPlayer]
                         if first: self.setCoup(angle, babouches, coordstapis)
                     modele.undo()

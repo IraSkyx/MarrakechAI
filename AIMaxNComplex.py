@@ -46,7 +46,7 @@ import random
 
 debug = False #True
 
-class IAMaxN(JoueurMarrakech):
+class AIMaxNComplex(JoueurMarrakech):
 
     def __init__(self):
         super().__init__()
@@ -87,13 +87,35 @@ class IAMaxN(JoueurMarrakech):
         # On sait déjà quoi faire avec le modèle sans aléa
         return self.coords
 
+    def offensive(self,current,score,numPlayer):
+        '''Offensive'''
+        return max(current) < score[current.index(max(current))]
+
+    def paranoid(self,current,score,numPlayer):
+        '''Paranoid'''
+        return sum(current)-current[numPlayer] < sum(score)-score[numPlayer]
+
+    def classic(self,current,score,numPlayer):
+        '''Classic'''
+        return current[numPlayer] > score[numPlayer]
+
+    def strategy(self,current,score,numPlayer):
+        '''Choose the strategy'''
+        if score[numPlayer] == max(score):
+            return self.paranoid(current,score,numPlayer)
+        if score[numPlayer] == min(score):
+            return self.offensive(current,score,numPlayer)
+        return self.classic(current,score,numPlayer)
+
     def _maxSimplet(self, numPlayer, depth, modele, first=False):
         """Meilleur coup local pour Joueur"""
 
-        #if self.max_depth == None:
-        #    self.max_depth=6*modele.nb_joueurs
+        if self.max_depth == None:
+            self.max_depth=6*modele.nb_joueurs
 
         if len(modele.tapis[-1]) == 0 or depth == self.max_depth:
+            if depth == self.max_depth:
+                print("Max_depth =" + str(self.max_depth) + " et depth =" + str(depth))
             return self._eval(modele)
 
         score=[]
@@ -123,7 +145,7 @@ class IAMaxN(JoueurMarrakech):
 
                     current = self._maxSimplet((numPlayer+1)%modele.nb_joueurs,depth+1,modele)
 
-                    if current[numPlayer] > score[numPlayer]:
+                    if self.strategy(current,score,numPlayer):
                         score[numPlayer] = current[numPlayer]
                         if first: self.setCoup(angle, babouches, coordstapis)
                     modele.undo()

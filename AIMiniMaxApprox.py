@@ -46,7 +46,7 @@ import random
 
 debug = False #True
 
-class IAAlphaBeta(JoueurMarrakech):
+class AIMiniMaxApprox(JoueurMarrakech):
 
     def __init__(self):
         super().__init__()
@@ -56,7 +56,7 @@ class IAAlphaBeta(JoueurMarrakech):
         self.evaluationPosition = None
         self.stat_noeuds = 0
         self.stat_feuilles = 0
-        self.stat_coupe = 0
+        self.max_depth = 4
 
     def __str__(self):
         return "\033[%dm %d \033[0m"%(self.numero+41, self.numero)
@@ -67,12 +67,12 @@ class IAAlphaBeta(JoueurMarrakech):
         self.coords = coords
 
     def stats(self):
-        return "Stats : noeuds internes "+ str(self.stat_noeuds) + " feuilles "+ str(self.stat_feuilles) + " coupes "+ str(self.stat_coupe)
+        return "Stats : noeuds internes "+ str(self.stat_noeuds) + " feuilles "+ str(self.stat_feuilles)
 
     def changer_direction(self,modele):
         print("\nMon IA %s"%self)
         self.setCoup()
-        self.stat_noeuds = self.stat_feuilles = self.stat_coupe = 0
+        self.stat_noeuds = self.stat_feuilles = 0
         self.evaluationPosition = self._maxSimplet(0,modele, True)
         print(self.stats())
         print("Choix : dir " + str(self.angle) +" babouches " + str(self.babouches) + " tapis " + str(self.coords))
@@ -86,104 +86,99 @@ class IAAlphaBeta(JoueurMarrakech):
         # On sait déjà quoi faire avec le modèle sans aléa
         return self.coords
 
-    def _minSimplet(self, depth, modele, alpha, beta):
+    def _minSimplet(self, depth, modele):
 
         numMin=(self.numero+1)%modele.nb_joueurs
         """Meilleur coup local pour Joueur"""
-        if len(modele.tapis[-1]) == 0:
+        if (len(modele.tapis[-1]) == 0) or (depth == self.max_depth):
             return self._eval(modele)
 
-        angles=[-1,0,1]
-        random.shuffle(angles)
-        for angle in angles:
+        worst=float('Inf')
+
+        for angle in [-1,0,1]:
             modele.changeDir(numMin, angle)
             self.stat_noeuds+=1
             babouchesPossibles=[b+1 for b, carte in enumerate(modele.nb_cartes_deplacement[numMin]) if carte > 0]
-            random.shuffle(babouchesPossibles)
             for babouches in babouchesPossibles:
                 modele.avanceAssam(numMin, babouches)
                 self.stat_noeuds+=1
                 tapisPossibles=modele.plateau.coups_possibles()
-                random.shuffle(tapisPossibles)
                 for coordstapis in tapisPossibles:
                     modele.poseTapis(numMin, coordstapis)
                     self.stat_noeuds+=1
 
-                    current = self._maxSimplet(depth+1,modele,False,alpha,beta)
-                    if current < beta:
-                        beta = current
-                        if alpha >= beta:
-                            self.stat_coupe+=1
+                    current = self._maxSimplet(depth+1,modele)
+                    if current < worst:
+                        worst = current
+                        if worst == float('-Inf'):
                             modele.undo()
                             modele.undo()
                             modele.undo()
-                            return beta
+                            return worst
                     modele.undo()
                 modele.undo()
             modele.undo()
-        return beta
+        return worst
 
 
-    def _maxSimplet(self, depth, modele, first=False, alpha=float('-Inf'), beta=float('Inf')):
+    def _maxSimplet(self, depth, modele, first=False):
 
         """Meilleur coup local pour Joueur"""
-        if len(modele.tapis[-1]) == 0:
+        if (len(modele.tapis[-1]) == 0) or (depth == self.max_depth):
             return self._eval(modele)
 
-            angles=[-1,0,1]
-            random.shuffle(angles)
-            for angle in angles:
-                modele.changeDir(self.numero, angle)
+        best=float('-Inf')
+
+        for angle in [-1,0,1]:
+            modele.changeDir(self.numero, angle)
+            self.stat_noeuds+=1
+            babouchesPossibles=[b+1 for b, carte in enumerate(modele.nb_cartes_deplacement[self.numero]) if carte > 0]
+            for babouches in babouchesPossibles:
+                modele.avanceAssam(self.numero, babouches)
                 self.stat_noeuds+=1
-                babouchesPossibles=[b+1 for b, carte in enumerate(modele.nb_cartes_deplacement[self.numero]) if carte > 0]
-                random.shuffle(babouchesPossibles)
-                for babouches in babouchesPossibles:
-                    modele.avanceAssam(self.numero, babouches)
+                tapisPossibles=modele.plateau.coups_possibles()
+                for coordstapis in tapisPossibles:
+                    modele.poseTapis(self.numero, coordstapis)
                     self.stat_noeuds+=1
-                    tapisPossibles=modele.plateau.coups_possibles()
-                    random.shuffle(tapisPossibles)
-                    for coordstapis in tapisPossibles:
-                        modele.poseTapis(self.numero, coordstapis)
-                        self.stat_noeuds+=1
-                        if first and self.angle == None:
+                    if first and self.angle == None:
+                        self.setCoup(angle, babouches, coordstapis)
+                    current = self._minSimplet(depth+1,modele)
+                    if current > best:
+                        best = current
+                        if first:
                             self.setCoup(angle, babouches, coordstapis)
-                        current = self._minSimplet(depth+1,modele,alpha,beta)
-                        if current > alpha:
-                            alpha = current
-                            if first:
-                                self.setCoup(angle, babouches, coordstapis)
-                            if alpha >= beta:
-                                self.stat_coupe+=1
-                                modele.undo()
-                                modele.undo()
-                                modele.undo()
-                                return alpha
-                        modele.undo()
+                        if best == float('Inf'):
+                            modele.undo()
+                            modele.undo()
+                            modele.undo()
+                            return best
                     modele.undo()
                 modele.undo()
-        return alpha
+            modele.undo()
+        return best
 
     def _eval(self, modele):
         """ evaluation simpliste du coup"""
         self.stat_feuilles+=1
         points = modele.points()
-        if len(modele.tapis[-1]) == 0:
+        #if (len(modele.tapis[-1]) == 0) or (depth == self.max_depth):
             # endgame : dernier joueur n'a plus de tapis
-            res=float('Inf')
-            for i in range(modele.nb_joueurs):
-                if (i == self.numero):
-                    pass
-                else:
-                    if points[i] > points[self.numero]:
-                        return float('-Inf')
-                    if points[i] == points[self.numero]:
-                        res=0
-            return res
-        # heuristique : calcul partiel des points
-        res=0
+        res=float('Inf')
         for i in range(modele.nb_joueurs):
             if (i == self.numero):
-                res+= points[i]
+                pass
             else:
-                res -= points[i]
+                if points[i] > points[self.numero]:
+                    return float('-Inf')
+                if points[i] == points[self.numero]:
+                    res=0
         return res
+        # heuristique : calcul partiel des points
+        #
+        #res=0
+        #for i in range(modele.nb_joueurs):
+        #    if (i == self.numero):
+                #res+= points[i]
+        #    else:
+        #        res -= points[i]
+        #return res

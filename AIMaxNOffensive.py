@@ -46,7 +46,7 @@ import random
 
 debug = False #True
 
-class IAMaxNApprox(JoueurMarrakech):
+class AIMaxNOffensive(JoueurMarrakech):
 
     def __init__(self):
         super().__init__()
@@ -57,7 +57,7 @@ class IAMaxNApprox(JoueurMarrakech):
         self.stat_noeuds = 0
         self.stat_feuilles = 0
         self.stat_coupe = 0
-        self.max_depth = None
+        self.max_depth = None #si depth == none alors je l'initialise
 
     def __str__(self):
         return "\033[%dm %d \033[0m"%(self.numero+41, self.numero)
@@ -87,13 +87,19 @@ class IAMaxNApprox(JoueurMarrakech):
         # On sait déjà quoi faire avec le modèle sans aléa
         return self.coords
 
+    def strategy(self,current,score,numPlayer):
+        '''Offensive'''
+        return max(current) < score[current.index(max(current))]
+
     def _maxSimplet(self, numPlayer, depth, modele, first=False):
         """Meilleur coup local pour Joueur"""
 
         if self.max_depth == None:
-            self.max_depth=2*modele.nb_joueurs
+            self.max_depth=6*modele.nb_joueurs
 
         if len(modele.tapis[-1]) == 0 or depth == self.max_depth:
+            if depth == self.max_depth:
+                print("Max_depth =" + str(self.max_depth) + " et depth =" + str(depth))
             return self._eval(modele)
 
         score=[]
@@ -123,7 +129,7 @@ class IAMaxNApprox(JoueurMarrakech):
 
                     current = self._maxSimplet((numPlayer+1)%modele.nb_joueurs,depth+1,modele)
 
-                    if current[numPlayer] > score[numPlayer]:
+                    if self.strategy(current,score,numPlayer):
                         score[numPlayer] = current[numPlayer]
                         if first: self.setCoup(angle, babouches, coordstapis)
                     modele.undo()
