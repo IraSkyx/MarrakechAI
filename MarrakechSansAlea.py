@@ -179,8 +179,9 @@ if __name__ == "__main__":
     from AIMaxNParanoid import *
     from AIMaxNOffensive import *
     from AIMaxNComplex import *
+    from AIAlphaBetaOpeningTable import *
     #
-    dict_types_joueurs = {"hasard" : JoueurAuHasard, "AIMiniMax": AIMiniMax, "AIMiniMaxApprox": AIMiniMaxApprox, "AIAlphaBeta": AIAlphaBeta, "AIAlphaBetaOpti": AIAlphaBetaOpti, "AIMaxN": AIMaxN, "AIMaxNApprox": AIMaxNApprox, "AIMaxNParanoid": AIMaxNParanoid, "AIMaxNOffensive": AIMaxNOffensive, "AIMaxNComplex": AIMaxNComplex, "clavier": JoueurLDC, "simple" : MonIASimpletteSansAlea}
+    dict_types_joueurs = {"hasard" : JoueurAuHasard, "AIMiniMax": AIMiniMax, "AIMiniMaxApprox": AIMiniMaxApprox, "AIAlphaBeta": AIAlphaBeta, "AIAlphaBetaOpti": AIAlphaBetaOpti, "AIAlphaBetaOpeningTable": AIAlphaBetaOpeningTable, "AIMaxN": AIMaxN, "AIMaxNApprox": AIMaxNApprox, "AIMaxNParanoid": AIMaxNParanoid, "AIMaxNOffensive": AIMaxNOffensive, "AIMaxNComplex": AIMaxNComplex, "clavier": JoueurLDC, "simple" : MonIASimpletteSansAlea}
     strplayers=""
     for v in dict_types_joueurs.keys():
         strplayers+=str(v)+" "

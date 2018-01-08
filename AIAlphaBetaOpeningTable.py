@@ -43,12 +43,10 @@
 from ModeleMarrakechSansAlea import *
 import copy
 import random
-import os
-os.chdir(os.getcwd())
 
 debug = False #True
 
-class AIAlphaBeta(JoueurMarrakech):
+class AIAlphaBetaOpeningTable(JoueurMarrakech):
 
     def __init__(self):
         super().__init__()
@@ -98,17 +96,17 @@ class AIAlphaBeta(JoueurMarrakech):
             return self._eval(modele)
 
         angles=[-1,0,1]
-
+        random.shuffle(angles)
         for angle in angles:
             modele.changeDir(numMin, angle)
             self.stat_noeuds+=1
             babouchesPossibles=[b+1 for b, carte in enumerate(modele.nb_cartes_deplacement[numMin]) if carte > 0]
-
+            random.shuffle(babouchesPossibles)
             for babouches in babouchesPossibles:
                 modele.avanceAssam(numMin, babouches)
                 self.stat_noeuds+=1
                 tapisPossibles=modele.plateau.coups_possibles()
-
+                random.shuffle(tapisPossibles)
                 for coordstapis in tapisPossibles:
                     modele.poseTapis(numMin, coordstapis)
                     self.stat_noeuds+=1
@@ -134,39 +132,41 @@ class AIAlphaBeta(JoueurMarrakech):
         if len(modele.tapis[-1]) == 0:
             return self._eval(modele)
 
-        angles=[-1,0,1]
-        for angle in angles:
-            modele.changeDir(self.numero, angle)
-            self.stat_noeuds+=1
-            babouchesPossibles=[b+1 for b, carte in enumerate(modele.nb_cartes_deplacement[self.numero]) if carte > 0]
-
-            for babouches in babouchesPossibles:
-                modele.avanceAssam(self.numero, babouches)
+        #TABLE D'OUVERTURE
+        if first and self.numero == 0 and self.nb_tours == 0:
+            self.setCoup(-1, 1, ((0, 1), (0, 0)))
+        else:
+            angles=[-1,0,1]
+            random.shuffle(angles)
+            for angle in angles:
+                modele.changeDir(self.numero, angle)
                 self.stat_noeuds+=1
-                tapisPossibles=modele.plateau.coups_possibles()
-
-                for coordstapis in tapisPossibles:
-                    modele.poseTapis(self.numero, coordstapis)
+                babouchesPossibles=[b+1 for b, carte in enumerate(modele.nb_cartes_deplacement[self.numero]) if carte > 0]
+                random.shuffle(babouchesPossibles)
+                for babouches in babouchesPossibles:
+                    modele.avanceAssam(self.numero, babouches)
                     self.stat_noeuds+=1
-                    if first and self.angle == None:
-                        self.setCoup(angle, babouches, coordstapis)
-                    current = self._minSimplet(depth+1,modele,alpha,beta)
-                    if current > alpha:
-                        alpha = current
-                        if first:
+                    tapisPossibles=modele.plateau.coups_possibles()
+                    random.shuffle(tapisPossibles)
+                    for coordstapis in tapisPossibles:
+                        modele.poseTapis(self.numero, coordstapis)
+                        self.stat_noeuds+=1
+                        if first and self.angle == None:
                             self.setCoup(angle, babouches, coordstapis)
-                        if alpha >= beta:
-                            self.stat_coupe+=1
-                            modele.undo()
-                            modele.undo()
-                            modele.undo()
-                            return alpha
+                        current = self._minSimplet(depth+1,modele,alpha,beta)
+                        if current > alpha:
+                            alpha = current
+                            if first:
+                                self.setCoup(angle, babouches, coordstapis)
+                            if alpha >= beta:
+                                self.stat_coupe+=1
+                                modele.undo()
+                                modele.undo()
+                                modele.undo()
+                                return alpha
+                        modele.undo()
                     modele.undo()
                 modele.undo()
-            modele.undo()
-        if first and self.nb_tours == 0:
-            with open("stats.txt", "a") as file:
-                file.write(str(self.angle) + " " + str(self.babouches) + " " + str(self.coords) + "\n")
         return alpha
 
     def _eval(self, modele):
