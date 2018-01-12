@@ -46,7 +46,7 @@ import random
 
 debug = False #True
 
-class AIMiniMax(JoueurMarrakech):
+class Prince2(JoueurMarrakech):
 
     def __init__(self):
         super().__init__()
@@ -72,7 +72,7 @@ class AIMiniMax(JoueurMarrakech):
         print("\nMon IA %s"%self)
         self.setCoup()
         self.stat_noeuds = self.stat_feuilles = 0
-        self.evaluationPosition = self._maxSimplet(modele, True)
+        self.evaluationPosition = self._maxSimplet(0,modele, True)
         print(self.stats())
         print("Choix : dir " + str(self.angle) +" babouches " + str(self.babouches) + " tapis " + str(self.coords))
         print("Evaluation : " + str(self.evaluationPosition))
@@ -85,11 +85,11 @@ class AIMiniMax(JoueurMarrakech):
         # On sait déjà quoi faire avec le modèle sans aléa
         return self.coords
 
-    def _minSimplet(self, modele):
+    def _minSimplet(self, depth, modele):
 
         numMin=(self.numero+1)%modele.nb_joueurs
         """Meilleur coup local pour Joueur"""
-        if len(modele.tapis[-1]) == 0:
+        if (len(modele.tapis[-1]) == 0) or (len(modele.tapis[self.numero]) == 10):
             return self._eval(modele)
 
         worst=float('Inf')
@@ -106,7 +106,7 @@ class AIMiniMax(JoueurMarrakech):
                     modele.poseTapis(numMin, coordstapis)
                     self.stat_noeuds+=1
 
-                    current = self._maxSimplet(modele)
+                    current = self._maxSimplet(depth+1,modele)
                     if current < worst:
                         worst = current
                         if worst == float('-Inf'):
@@ -120,10 +120,10 @@ class AIMiniMax(JoueurMarrakech):
         return worst
 
 
-    def _maxSimplet(self,modele, first=False):
+    def _maxSimplet(self, depth, modele, first=False):
 
         """Meilleur coup local pour Joueur"""
-        if len(modele.tapis[-1]) == 0:
+        if (len(modele.tapis[-1]) == 0) or (depth == self.max_depth):
             return self._eval(modele)
 
         best=float('-Inf')
@@ -141,7 +141,7 @@ class AIMiniMax(JoueurMarrakech):
                     self.stat_noeuds+=1
                     if first and self.angle == None:
                         self.setCoup(angle, babouches, coordstapis)
-                    current = self._minSimplet(modele)
+                    current = self._minSimplet(depth+1,modele)
                     if current > best:
                         best = current
                         if first:
@@ -160,23 +160,24 @@ class AIMiniMax(JoueurMarrakech):
         """ evaluation simpliste du coup"""
         self.stat_feuilles+=1
         points = modele.points()
-        if len(modele.tapis[-1]) == 0:
+        #if (len(modele.tapis[-1]) == 0) or (depth == self.max_depth):
             # endgame : dernier joueur n'a plus de tapis
-            res=float('Inf')
-            for i in range(modele.nb_joueurs):
-                if (i == self.numero):
-                    pass
-                else:
-                    if points[i] > points[self.numero]:
-                        return float('-Inf')
-                    if points[i] == points[self.numero]:
-                        res=0
-            return res
-        # heuristique : calcul partiel des points
-        res=0
+        res=float('Inf')
         for i in range(modele.nb_joueurs):
             if (i == self.numero):
-                res+= points[i]
+                pass
             else:
-                res -= points[i]
+                if points[i] > points[self.numero]:
+                    return float('-Inf')
+                if points[i] == points[self.numero]:
+                    res=0
         return res
+        # heuristique : calcul partiel des points
+        #
+        #res=0
+        #for i in range(modele.nb_joueurs):
+        #    if (i == self.numero):
+                #res+= points[i]
+        #    else:
+        #        res -= points[i]
+        #return res

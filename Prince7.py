@@ -46,7 +46,7 @@ import random
 
 debug = False #True
 
-class AIMaxNComplex(JoueurMarrakech):
+class Prince7(JoueurMarrakech):
 
     def __init__(self):
         super().__init__()
@@ -57,7 +57,6 @@ class AIMaxNComplex(JoueurMarrakech):
         self.stat_noeuds = 0
         self.stat_feuilles = 0
         self.stat_coupe = 0
-        self.max_depth = None #si depth == none alors je l'initialise
 
     def __str__(self):
         return "\033[%dm %d \033[0m"%(self.numero+41, self.numero)
@@ -74,7 +73,7 @@ class AIMaxNComplex(JoueurMarrakech):
         print("\nMon IA %s"%self)
         self.setCoup()
         self.stat_noeuds = self.stat_feuilles = self.stat_coupe = 0
-        self.evaluationPosition = self._maxSimplet(self.numero,0,modele, True)
+        self.evaluationPosition = self._maxN(self.numero,0,modele, True)
         print(self.stats())
         print("Choix : dir " + str(self.angle) +" babouches " + str(self.babouches) + " tapis " + str(self.coords))
         print("Evaluation : " + str(self.evaluationPosition))
@@ -87,35 +86,14 @@ class AIMaxNComplex(JoueurMarrakech):
         # On sait déjà quoi faire avec le modèle sans aléa
         return self.coords
 
-    def offensive(self,current,score,numPlayer):
-        '''Offensive'''
-        return max(current) < score[current.index(max(current))]
-
-    def paranoid(self,current,score,numPlayer):
+    def strategy(self,current,score,numPlayer):
         '''Paranoid'''
         return sum(current)-current[numPlayer] < sum(score)-score[numPlayer]
 
-    def classic(self,current,score,numPlayer):
-        '''Classic'''
-        return current[numPlayer] > score[numPlayer]
-
-    def strategy(self,current,score,numPlayer):
-        '''Choose the strategy'''
-        if score[numPlayer] == max(score):
-            return self.paranoid(current,score,numPlayer)
-        if score[numPlayer] == min(score):
-            return self.offensive(current,score,numPlayer)
-        return self.classic(current,score,numPlayer)
-
-    def _maxSimplet(self, numPlayer, depth, modele, first=False):
+    def _maxN(self, numPlayer, depth, modele, first=False):
         """Meilleur coup local pour Joueur"""
 
-        if self.max_depth == None:
-            self.max_depth=6*modele.nb_joueurs
-
-        if len(modele.tapis[-1]) == 0 or depth == self.max_depth:
-            if depth == self.max_depth:
-                print("Max_depth =" + str(self.max_depth) + " et depth =" + str(depth))
+        if len(modele.tapis[-1]) == 0 or (len(modele.tapis[self.numero]) == 10):
             return self._eval(modele)
 
         score=[]
@@ -143,7 +121,7 @@ class AIMaxNComplex(JoueurMarrakech):
                     if first and self.angle == None:
                         self.setCoup(angle, babouches, coordstapis)
 
-                    current = self._maxSimplet((numPlayer+1)%modele.nb_joueurs,depth+1,modele)
+                    current = self._maxN((numPlayer+1)%modele.nb_joueurs,depth+1,modele)
 
                     if self.strategy(current,score,numPlayer):
                         score[numPlayer] = current[numPlayer]

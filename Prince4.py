@@ -46,7 +46,7 @@ import random
 
 debug = False #True
 
-class AIAlphaBetaOpti(JoueurMarrakech):
+class Prince4(JoueurMarrakech):
 
     def __init__(self):
         super().__init__()
@@ -134,48 +134,21 @@ class AIAlphaBetaOpti(JoueurMarrakech):
 
         #TABLE D'OUVERTURE
         if first and self.numero == 0 and self.nb_tours == 0:
-            print("Table d'ouverture sur l'angle 0 !")
-            modele.changeDir(self.numero, 0)
-            self.stat_noeuds+=1
-            babouchesPossibles=[b+1 for b, carte in enumerate(modele.nb_cartes_deplacement[self.numero]) if carte > 0]
-            random.shuffle(babouchesPossibles)
-            for babouches in babouchesPossibles:
-                modele.avanceAssam(self.numero, babouches)
-                self.stat_noeuds+=1
-                tapisPossibles=modele.plateau.coups_possibles()
-                random.shuffle(tapisPossibles)
-                for coordstapis in tapisPossibles:
-                    modele.poseTapis(self.numero, coordstapis)
-                    self.stat_noeuds+=1
-                    if first and self.angle == None:
-                        self.setCoup(0, babouches, coordstapis)
-                    current = self._minSimplet(depth+1,modele,alpha,beta)
-                    if current > alpha:
-                        alpha = current
-                        if first:
-                            self.setCoup(0, babouches, coordstapis)
-                        if alpha >= beta:
-                            self.stat_coupe+=1
-                            modele.undo()
-                            modele.undo()
-                            modele.undo()
-                            return alpha
-                    modele.undo()
-                modele.undo()
-            modele.undo()
+            print("Work in progress")
+            #self.setCoup(-1, 1, ((0, 1), (0, 0)))
         else:
             angles=[-1,0,1]
-            random.shuffle(angles)
+            if (len(modele.tapis[self.numero]) > 3) : random.shuffle(angles)
             for angle in angles:
                 modele.changeDir(self.numero, angle)
                 self.stat_noeuds+=1
                 babouchesPossibles=[b+1 for b, carte in enumerate(modele.nb_cartes_deplacement[self.numero]) if carte > 0]
-                random.shuffle(babouchesPossibles)
+                if (len(modele.tapis[self.numero]) > 3) : random.shuffle(babouchesPossibles)
                 for babouches in babouchesPossibles:
                     modele.avanceAssam(self.numero, babouches)
                     self.stat_noeuds+=1
                     tapisPossibles=modele.plateau.coups_possibles()
-                    random.shuffle(tapisPossibles)
+                    if (len(modele.tapis[self.numero]) > 3) : random.shuffle(tapisPossibles)
                     for coordstapis in tapisPossibles:
                         modele.poseTapis(self.numero, coordstapis)
                         self.stat_noeuds+=1

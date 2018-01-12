@@ -43,10 +43,12 @@
 from ModeleMarrakechSansAlea import *
 import copy
 import random
+import os
+os.chdir(os.getcwd())
 
 debug = False #True
 
-class AIMaxNParanoid(JoueurMarrakech):
+class Prince3(JoueurMarrakech):
 
     def __init__(self):
         super().__init__()
@@ -57,7 +59,7 @@ class AIMaxNParanoid(JoueurMarrakech):
         self.stat_noeuds = 0
         self.stat_feuilles = 0
         self.stat_coupe = 0
-        self.max_depth = None #si depth == none alors je l'initialise
+        self.nb_tours=0
 
     def __str__(self):
         return "\033[%dm %d \033[0m"%(self.numero+41, self.numero)
@@ -68,13 +70,14 @@ class AIMaxNParanoid(JoueurMarrakech):
         self.coords = coords
 
     def stats(self):
-        return "Stats : noeuds internes "+ str(self.stat_noeuds) + " feuilles "+ str(self.stat_feuilles) + " Stats : coupes "+ str(self.stat_coupe)
+        return "Stats : noeuds internes "+ str(self.stat_noeuds) + " feuilles "+ str(self.stat_feuilles) + " coupes "+ str(self.stat_coupe)
 
     def changer_direction(self,modele):
         print("\nMon IA %s"%self)
         self.setCoup()
         self.stat_noeuds = self.stat_feuilles = self.stat_coupe = 0
-        self.evaluationPosition = self._maxSimplet(self.numero,0,modele, True)
+        self.evaluationPosition = self._maxSimplet(0,modele, True)
+        self.nb_tours=1
         print(self.stats())
         print("Choix : dir " + str(self.angle) +" babouches " + str(self.babouches) + " tapis " + str(self.coords))
         print("Evaluation : " + str(self.evaluationPosition))
@@ -87,65 +90,103 @@ class AIMaxNParanoid(JoueurMarrakech):
         # On sait déjà quoi faire avec le modèle sans aléa
         return self.coords
 
-    def sumScore(self,modele,numPlayer,score):
-        sum=0
-        '''Sum for paranoid strategy'''
-        for i in range(modele.nb_joueurs):
-            if i != numPlayer and score[i] != float('-Inf'):
-                sum+=score[i]
-        return sum
+    def _minSimplet(self, depth, modele, alpha, beta):
 
-    def strategy(self,current,score,numPlayer):
-        '''Paranoid'''
-        return sum(current)-current[numPlayer] < sum(score)-score[numPlayer]
-
-    def _maxSimplet(self, numPlayer, depth, modele, first=False):
+        numMin=(self.numero+1)%modele.nb_joueurs
         """Meilleur coup local pour Joueur"""
-
-        if self.max_depth == None:
-            self.max_depth=6*modele.nb_joueurs
-
-        if len(modele.tapis[-1]) == 0 or depth == self.max_depth:
-            if depth == self.max_depth:
-                print("Max_depth =" + str(self.max_depth) + " et depth =" + str(depth))
+        if len(modele.tapis[-1]) == 0:
             return self._eval(modele)
 
-        score=[]
-        for i in range(modele.nb_joueurs):
-            score.append(float('-Inf'))
-
         angles=[-1,0,1]
-        random.shuffle(angles)
 
         for angle in angles:
-            modele.changeDir(numPlayer, angle)
+            modele.changeDir(numMin, angle)
             self.stat_noeuds+=1
-            babouchesPossibles=[b+1 for b, carte in enumerate(modele.nb_cartes_deplacement[numPlayer]) if carte > 0]
-            random.shuffle(babouchesPossibles)
+            babouchesPossibles=[b+1 for b, carte in enumerate(modele.nb_cartes_deplacement[numMin]) if carte > 0]
 
             for babouches in babouchesPossibles:
-                modele.avanceAssam(numPlayer, babouches)
+                modele.avanceAssam(numMin, babouches)
                 self.stat_noeuds+=1
                 tapisPossibles=modele.plateau.coups_possibles()
-                random.shuffle(tapisPossibles)
 
                 for coordstapis in tapisPossibles:
-                    modele.poseTapis(numPlayer, coordstapis)
+                    modele.poseTapis(numMin, coordstapis)
                     self.stat_noeuds+=1
-                    if first and self.angle == None:
-                        self.setCoup(angle, babouches, coordstapis)
 
-                    current = self._maxSimplet((numPlayer+1)%modele.nb_joueurs,depth+1,modele)
-
-                    if self.strategy(current,score,numPlayer):
-                        score[numPlayer] = current[numPlayer]
-                        if first: self.setCoup(angle, babouches, coordstapis)
+                    current = self._maxSimplet(depth+1,modele,False,alpha,beta)
+                    if current < beta:
+                        beta = current
+                        if alpha >= beta:
+                            self.stat_coupe+=1
+                            modele.undo()
+                            modele.undo()
+                            modele.undo()
+                            return beta
                     modele.undo()
                 modele.undo()
             modele.undo()
-        return score
+        return beta
+
+
+    def _maxSimplet(self, depth, modele, first=False, alpha=float('-Inf'), beta=float('Inf')):
+
+        """Meilleur coup local pour Joueur"""
+        if len(modele.tapis[-1]) == 0:
+            return self._eval(modele)
+
+        angles=[-1,0,1]
+        for angle in angles:
+            modele.changeDir(self.numero, angle)
+            self.stat_noeuds+=1
+            babouchesPossibles=[b+1 for b, carte in enumerate(modele.nb_cartes_deplacement[self.numero]) if carte > 0]
+
+            for babouches in babouchesPossibles:
+                modele.avanceAssam(self.numero, babouches)
+                self.stat_noeuds+=1
+                tapisPossibles=modele.plateau.coups_possibles()
+
+                for coordstapis in tapisPossibles:
+                    modele.poseTapis(self.numero, coordstapis)
+                    self.stat_noeuds+=1
+                    if first and self.angle == None:
+                        self.setCoup(angle, babouches, coordstapis)
+                    current = self._minSimplet(depth+1,modele,alpha,beta)
+                    if current > alpha:
+                        alpha = current
+                        if first:
+                            self.setCoup(angle, babouches, coordstapis)
+                        if alpha >= beta:
+                            self.stat_coupe+=1
+                            modele.undo()
+                            modele.undo()
+                            modele.undo()
+                            return alpha
+                    modele.undo()
+                modele.undo()
+            modele.undo()
+        return alpha
 
     def _eval(self, modele):
         """ evaluation simpliste du coup"""
         self.stat_feuilles+=1
-        return modele.points()
+        points = modele.points()
+        if len(modele.tapis[-1]) == 0:
+            # endgame : dernier joueur n'a plus de tapis
+            res=float('Inf')
+            for i in range(modele.nb_joueurs):
+                if (i == self.numero):
+                    pass
+                else:
+                    if points[i] > points[self.numero]:
+                        return float('-Inf')
+                    if points[i] == points[self.numero]:
+                        res=0
+            return res
+        # heuristique : calcul partiel des points
+        res=0
+        for i in range(modele.nb_joueurs):
+            if (i == self.numero):
+                res+= points[i]
+            else:
+                res -= points[i]
+        return res

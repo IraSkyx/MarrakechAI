@@ -46,7 +46,7 @@ import random
 
 debug = False #True
 
-class AIMaxN(JoueurMarrakech):
+class Prince5(JoueurMarrakech):
 
     def __init__(self):
         super().__init__()
@@ -57,7 +57,6 @@ class AIMaxN(JoueurMarrakech):
         self.stat_noeuds = 0
         self.stat_feuilles = 0
         self.stat_coupe = 0
-        self.max_depth = None #si depth == none alors je l'initialise
 
     def __str__(self):
         return "\033[%dm %d \033[0m"%(self.numero+41, self.numero)
@@ -74,7 +73,7 @@ class AIMaxN(JoueurMarrakech):
         print("\nMon IA %s"%self)
         self.setCoup()
         self.stat_noeuds = self.stat_feuilles = self.stat_coupe = 0
-        self.evaluationPosition = self._maxSimplet(self.numero,0,modele, True)
+        self.evaluationPosition = self._maxN(self.numero,0,modele, True)
         print(self.stats())
         print("Choix : dir " + str(self.angle) +" babouches " + str(self.babouches) + " tapis " + str(self.coords))
         print("Evaluation : " + str(self.evaluationPosition))
@@ -91,13 +90,10 @@ class AIMaxN(JoueurMarrakech):
         '''Classic'''
         return current[numPlayer] > score[numPlayer]
 
-    def _maxSimplet(self, numPlayer, depth, modele, first=False):
+    def _maxN(self, numPlayer, depth, modele, first=False):
         """Meilleur coup local pour Joueur"""
 
-        #if self.max_depth == None:
-        #    self.max_depth=6*modele.nb_joueurs
-
-        if len(modele.tapis[-1]) == 0 or depth == self.max_depth:
+        if len(modele.tapis[-1]) == 0 :
             return self._eval(modele)
 
         score=[]
@@ -125,7 +121,7 @@ class AIMaxN(JoueurMarrakech):
                     if first and self.angle == None:
                         self.setCoup(angle, babouches, coordstapis)
 
-                    current = self._maxSimplet((numPlayer+1)%modele.nb_joueurs,depth+1,modele)
+                    current = self._maxN((numPlayer+1)%modele.nb_joueurs,depth+1,modele)
 
                     if self.strategy(current,score,numPlayer):
                         score[numPlayer] = current[numPlayer]
