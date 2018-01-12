@@ -43,6 +43,7 @@
 # termes.
 from ModeleMarrakechSansAlea import *
 import copy
+import pprint
 
 debug = True
 
@@ -170,18 +171,18 @@ if __name__ == "__main__":
     #random.seed(0) # pour avoir le même random à chaque fois
     import sys
     from MonIASimpletteSansAlea import *
-    from AIMiniMax import *
-    from AIMiniMaxApprox import *
-    from AIAlphaBeta import *
-    from AIAlphaBetaOpti import *
-    from AIMaxN import *
-    from AIMaxNApprox import *
-    from AIMaxNParanoid import *
-    from AIMaxNOffensive import *
-    from AIMaxNComplex import *
-    from AIAlphaBetaOpeningTable import *
+    from Prince1 import *
+    from Prince2 import *
+    from Prince3 import *
+    from Prince4 import *
+    from Prince5 import *
+    from Prince6 import *
+    from Prince7 import *
+    from Prince8 import *
+    from Prince9 import *
+
     #
-    dict_types_joueurs = {"hasard" : JoueurAuHasard, "AIMiniMax": AIMiniMax, "AIMiniMaxApprox": AIMiniMaxApprox, "AIAlphaBeta": AIAlphaBeta, "AIAlphaBetaOpti": AIAlphaBetaOpti, "AIAlphaBetaOpeningTable": AIAlphaBetaOpeningTable, "AIMaxN": AIMaxN, "AIMaxNApprox": AIMaxNApprox, "AIMaxNParanoid": AIMaxNParanoid, "AIMaxNOffensive": AIMaxNOffensive, "AIMaxNComplex": AIMaxNComplex, "clavier": JoueurLDC, "simple" : MonIASimpletteSansAlea}
+    dict_types_joueurs = {"hasard" : JoueurAuHasard, "AIMiniMax": Prince1, "AIMiniMaxApprox": Prince2, "AIAlphaBeta": Prince3, "AIAlphaBetaOpti": Prince4, "AIMaxN": Prince5, "AIMaxNApprox": Prince6, "AIMaxNParanoid": Prince7, "AIMaxNOffensive": Prince8, "AIMaxNComplex": Prince9, "clavier": JoueurLDC, "simple" : MonIASimpletteSansAlea}
     strplayers=""
     for v in dict_types_joueurs.keys():
         strplayers+=str(v)+" "
@@ -207,7 +208,7 @@ if __name__ == "__main__":
     m = ModeleMarrakechSansAlea(len(joueurs))
 
     #on joue quelques coups pour rendre l'arbre plus petit.
-    for toursAuPif in range(1,2):
+    for toursAuPif in range(1,1):
         for i, j in enumerate(joueurs):
             m.changeDir(i,random.randint(-1,1))# au pif
             m.avanceAssam(i,random.randint(1,2))# au pif
@@ -215,5 +216,8 @@ if __name__ == "__main__":
     for c in m._coups:
         print(str(c))
     print("Règles : ", m.nb_joueurs, " joueurs sur un plateau de côté ", m.plateau.TAILLEPLATEAU, " avec chacun ", m.modele_nb_cartes_deplacement, " cartes de déplacement ", m.nb_dirhams_par_joueur, " dirhams et ", m.nb_tapis_par_joueur, " tapis.")
+    #Affichage de l'historique
+    pp = pprint.PrettyPrinter(indent=3)
+    pp.pprint(modele.pretty_historique())
     gui = InterfaceLDC(m, joueurs)
     gui.run()
