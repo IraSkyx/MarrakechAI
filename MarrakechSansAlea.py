@@ -217,7 +217,5 @@ if __name__ == "__main__":
         print(str(c))
     print("Règles : ", m.nb_joueurs, " joueurs sur un plateau de côté ", m.plateau.TAILLEPLATEAU, " avec chacun ", m.modele_nb_cartes_deplacement, " cartes de déplacement ", m.nb_dirhams_par_joueur, " dirhams et ", m.nb_tapis_par_joueur, " tapis.")
     #Affichage de l'historique
-    pp = pprint.PrettyPrinter(indent=3)
-    pp.pprint(modele.pretty_historique())
     gui = InterfaceLDC(m, joueurs)
     gui.run()

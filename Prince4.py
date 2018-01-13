@@ -134,8 +134,7 @@ class Prince4(JoueurMarrakech):
 
         #TABLE D'OUVERTURE
         if first and self.numero == 0 and self.nb_tours == 0:
-            print("Work in progress")
-            #self.setCoup(-1, 1, ((0, 1), (0, 0)))
+            self.setCoup(-1, 1, ((2, 0), (1, 0)))
         else:
             angles=[-1,0,1]
             if (len(modele.tapis[self.numero]) > 3) : random.shuffle(angles)

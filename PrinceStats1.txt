@@ -1,1 +1,17 @@
--1 1 ((0, 1), (0, 0))
+ESSAIS :
+
+-----------------------------------
+
+('\n'
+ 'Joueur 0 fait aller Assam à gauche.Joueur 0 avance Assam de 1.Joueur 0 pose '
+ 'son tapis en ((2, 0), (1, 0)).\n')
+
+-----------------------------------
+
+('\n'
+ 'Joueur 0 fait aller Assam à gauche.Joueur 0 avance Assam de 1.Joueur 0 pose '
+ 'son tapis en ((2, 0), (1, 0)).\n')
+
+-----------------------------------
+
+Etc ... nous obtenons toujours le même résultat. 

@@ -44,6 +44,7 @@ from ModeleMarrakechSansAlea import *
 import copy
 import random
 import os
+import pprint
 os.chdir(os.getcwd())
 
 debug = False #True
@@ -77,6 +78,9 @@ class Prince3(JoueurMarrakech):
         self.setCoup()
         self.stat_noeuds = self.stat_feuilles = self.stat_coupe = 0
         self.evaluationPosition = self._maxSimplet(0,modele, True)
+        if self.nb_tours == 0:
+            pp = pprint.PrettyPrinter(indent=3)
+            pp.pprint(modele.pretty_historique())
         self.nb_tours=1
         print(self.stats())
         print("Choix : dir " + str(self.angle) +" babouches " + str(self.babouches) + " tapis " + str(self.coords))
