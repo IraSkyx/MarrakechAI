@@ -123,7 +123,7 @@ class Prince2(JoueurMarrakech):
     def _maxSimplet(self, depth, modele, first=False):
 
         """Meilleur coup local pour Joueur"""
-        if (len(modele.tapis[-1]) == 0) or (depth == self.max_depth):
+        if (len(modele.tapis[-1]) == 0) or (len(modele.tapis[self.numero]) == 10):
             return self._eval(modele)
 
         best=float('-Inf')

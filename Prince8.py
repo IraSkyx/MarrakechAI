@@ -57,6 +57,7 @@ class Prince8(JoueurMarrakech):
         self.stat_noeuds = 0
         self.stat_feuilles = 0
         self.stat_coupe = 0
+        self.max_depth = 2
 
     def __str__(self):
         return "\033[%dm %d \033[0m"%(self.numero+41, self.numero)
@@ -93,7 +94,7 @@ class Prince8(JoueurMarrakech):
     def _maxN(self, numPlayer, depth, modele, first=False):
         """Meilleur coup local pour Joueur"""
 
-        if len(modele.tapis[-1]) == 0 or (len(modele.tapis[self.numero]) == 10):
+        if len(modele.tapis[-1]) == 0 or self.max_depth == depth:
             return self._eval(modele)
 
         score=[]

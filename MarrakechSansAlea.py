@@ -182,7 +182,7 @@ if __name__ == "__main__":
     from Prince9 import *
 
     #
-    dict_types_joueurs = {"hasard" : JoueurAuHasard, "AIMiniMax": Prince1, "AIMiniMaxApprox": Prince2, "AIAlphaBeta": Prince3, "AIAlphaBetaOpti": Prince4, "AIMaxN": Prince5, "AIMaxNApprox": Prince6, "AIMaxNParanoid": Prince7, "AIMaxNOffensive": Prince8, "AIMaxNComplex": Prince9, "clavier": JoueurLDC, "simple" : MonIASimpletteSansAlea}
+    dict_types_joueurs = {"hasard" : JoueurAuHasard, "Prince1": Prince1, "Prince2": Prince2, "Prince3": Prince3, "Prince4": Prince4, "Prince5": Prince5, "Prince6": Prince6, "Prince7": Prince7, "Prince8": Prince8, "Prince9": Prince9, "clavier": JoueurLDC, "simple" : MonIASimpletteSansAlea}
     strplayers=""
     for v in dict_types_joueurs.keys():
         strplayers+=str(v)+" "
