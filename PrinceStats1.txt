@@ -1,4 +1,4 @@
-ESSAIS :
+ESSAIS 3x3 :
 
 -----------------------------------
 
@@ -14,4 +14,4 @@ ESSAIS :
 
 -----------------------------------
 
-Etc ... nous obtenons toujours le même résultat. 
+Etc ... nous obtenons toujours le même résultat.

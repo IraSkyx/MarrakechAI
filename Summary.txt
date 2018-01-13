@@ -13,7 +13,7 @@ Prince3 :
 Prince4 :
 - Alpha beta avec des optimisations sur l'ordre des coups (shuffle)
 - Voir PrinceImg1 et PrinceImg2 pour les résultats d'expérimentation (avec et sans shuffle)
-- Table d'ouverture
+- Table d'ouverture en 3x3 (trop long pour nos PCs en 5x5 pour calculer entièrement l'arbre en 5x5)
 - Voir PrinceStats1 pour les statistiques recueillies
 - Débranchement des optimisations (shuffle) quand on arrive près de la fin de l'arbre
 

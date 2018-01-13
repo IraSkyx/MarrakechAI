@@ -133,8 +133,9 @@ class Prince4(JoueurMarrakech):
             return self._eval(modele)
 
         #TABLE D'OUVERTURE
-        if first and self.numero == 0 and self.nb_tours == 0:
-            self.setCoup(-1, 1, ((2, 0), (1, 0)))
+        if first and self.numero == 0 and self.nb_tours == 0 and Plateau.taille_plateau() == 3:
+            if Plateau.taille_plateau() == 5: print("We need more stats for that")
+            elif Plateau.taille_plateau() == 3 : self.setCoup(-1, 1, ((2, 0), (1, 0)))
         else:
             angles=[-1,0,1]
             if (len(modele.tapis[self.numero]) > 3) : random.shuffle(angles)
