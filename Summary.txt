@@ -8,13 +8,13 @@ Prince2 :
 
 Prince3 :
 - IA alpha beta de base.
-- Fonctionne bien en 3x3. Pas d'approximations donc 5x5 très long.
+- Fonctionne bien en 3x3 en passant le premier tour, 10 min si on commence au tour 1. Pas d'approximations donc 5x5 très long.
 
 Prince4 :
 - Alpha beta avec des optimisations sur l'ordre des coups (shuffle)
 - Voir PrinceImg1 et PrinceImg2 pour les résultats d'expérimentation (avec et sans shuffle)
-- Table d'ouverture (le code est commenté car nous n'avons pas recueilli de stats suffisantes pour déterminer un coup favorables pour le début de partie)
-(- Voir PrinceStats1 pour les statistiques recueillies)
+- Table d'ouverture
+- Voir PrinceStats1 pour les statistiques recueillies
 - Débranchement des optimisations (shuffle) quand on arrive près de la fin de l'arbre
 
 Prince5 :
