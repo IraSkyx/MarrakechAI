@@ -10,37 +10,34 @@ AI for the Marrakech game
 - Works well in 3x3 board size, estimates well in 5x5.
 
 ## Prince3 :
-- IA alpha beta de base.
-- Fonctionne bien en 3x3 en passant le premier tour, 10 min si on commence au tour 1. Pas d'approximations donc 5x5 très long.
+- Classic Alpha Beta AI.
+- Works well in 3x3 board size by passing first turn, 10 min of execution instead. No estimations so 5x5 board size is quite long.
 
 ## Prince4 :
-- Alpha beta avec des optimisations sur l'ordre des coups (shuffle)
-- Voir PrinceImg1 et PrinceImg2 pour les résultats d'expérimentation (avec et sans shuffle)
-- Table d'ouverture
-- Voir PrinceStats1 pour les statistiques recueillies
-- Débranchement des optimisations (shuffle) quand on arrive près de la fin de l'arbre
+- Alpha Beta AI with a few optimizations on move order (with shuffle)
+- Opening table
+- Stop optimizations once it reaches nearly the end of the play tree.  
 
 ## Prince5 :
-- IA maxn 3 joueurs ou plus. Fonctionne bien en 3x3. Pas d'approximations donc 5x5 très long.
-- Utilisation de la fonction strategy pour déterminer si current est à remplacer par le score de retour du dernier _maxN() appelé.
+- MaxN AI for 3 or more players. Works well in 3x3 board size. No estimations so 5x5 is quite long. 
+- Strategy method defines if the AI should rather keep the current value or replace it with the return value of the last _maxN() call.
 
 ## Prince6 :
-- IA maxn 3 joueurs ou plus qui approxime le jeu en stoppant la recherche
-- Utilisation de la fonction strategy pour déterminer si current est à remplacer par le score de retour du dernier _maxN() appelé.
-- Fonctionne bien en 3x3, approxime bien en 5x5.
+- MaxN AI for 3 or more players which estimates the play tree.
+- Strategy method defines if the AI should rather keep the current value or replace it with the return value of the last _maxN() call.
+- Works well in 3x3 board size, estimates well in 5x5.
 
 ## Prince7 :
-- Variante paranoid de Prince6
-- Utilisation de la fonction strategy pour déterminer si current est à remplacer par le score de retour du dernier _maxN() appelé.
-- Fonctionne bien en 3x3, approxime bien en 5x5.
+- Paranoid variant of Prince6
+- Strategy method defines if the AI should rather keep the current value or replace it with the return value of the last _maxN() call.
+- Works well in 3x3 board size, estimates well in 5x5.
 
 ## Prince8 :
-- Variante offensive de Prince6
-- Utilisation de la fonction strategy pour déterminer si current est à remplacer par le score de retour du dernier _maxN() appelé.
-- Fonctionne bien en 3x3, approxime bien en 5x5.
+- Offensive variant of Prince6
+- Strategy method defines if the AI should rather keep the current value or replace it with the return value of the last _maxN() call.
+- Works well in 3x3 board size, estimates well in 5x5.
 
 ## Prince9 :
-- Variante complexe (qui joue offensive contre le joueur en tête quand elle perd, paranoid quand elle gagne, classic quand elle est 2ème ou 3ème) de Prince6
-- Utilisation de la fonction strategy pour déterminer si current est à remplacer par le score de retour du dernier _maxN() appelé en
-choisissant quelle méthode appeler par rapport à la situation actuelle du joueur (premier, dernier, etc ...)
-- Fonctionne bien en 3x3, approxime bien en 5x5.
+- Complex variant (which plays Offensive against the player in the lead when it loses, Paranoid when it wins or Classic otherwise) of Prince6.
+- Strategy method defines if the AI should rather keep the current value or replace it with the return value of the last _maxN() call. It chooses the strategy called depending on its current position in the game.
+- Works well in 3x3 board size, estimates well in 5x5.
